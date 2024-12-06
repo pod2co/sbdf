@@ -4,6 +4,7 @@ use std::borrow::Cow;
 use thiserror::Error;
 
 pub(crate) mod reader;
+pub(crate) mod writer;
 
 const COLUMN_METADATA_NAME: &'static str = "Name";
 const COLUMN_METADATA_TYPE: &'static str = "DataType";
@@ -129,7 +130,7 @@ impl Sbdf {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Eq, PartialEq, Deserialize, Serialize)]
 struct FileHeader {
     major_version: u8,
     minor_version: u8,
@@ -257,7 +258,7 @@ pub enum Object {
 }
 
 /// IEEE754 128-bit decimal.
-type Decimal = [u8; 16];
+pub type Decimal = [u8; 16];
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TableSlice {

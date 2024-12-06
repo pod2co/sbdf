@@ -1,5 +1,9 @@
+use crate::{
+    ColumnMetadata, ColumnSlice, Decimal, EncodedValue, FileHeader, Metadata, Object, Property,
+    SbdfError, SectionId, TableMetadata, TableSlice, ValueArrayEncoding, ValueType,
+    COLUMN_METADATA_NAME, COLUMN_METADATA_TYPE,
+};
 use std::io::{Cursor, Read};
-use crate::{ColumnMetadata, ColumnSlice, Decimal, EncodedValue, FileHeader, Metadata, Object, Property, SbdfError, SectionId, TableMetadata, TableSlice, ValueArrayEncoding, ValueType, COLUMN_METADATA_NAME, COLUMN_METADATA_TYPE};
 
 #[derive(Debug)]
 pub struct SbdfReader<'a> {
@@ -460,5 +464,112 @@ impl<'a> SbdfReader<'a> {
         Ok(TableSlice {
             column_slices: column_slices.into_boxed_slice(),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn read_byte() {
+        let buffer = [0x12, 0x34];
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_byte().unwrap(), 0x12);
+        assert_eq!(reader.read_byte().unwrap(), 0x34);
+    }
+
+    #[test]
+    fn read_7bit_packed_int() {
+        let buffer = [0x80, 0x08, 0x01, 0];
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_7bit_packed_int().unwrap(), 1024);
+        assert_eq!(reader.read_7bit_packed_int().unwrap(), 1);
+        assert_eq!(reader.read_7bit_packed_int().unwrap(), 0);
+    }
+
+    #[test]
+    fn read_int() {
+        let buffer = [0x0, 0x4, 0x0, 0x0];
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_int().unwrap(), 1024);
+    }
+
+    #[test]
+    fn read_long() {
+        let buffer = [0x0, 0x4, 0x0, 0x0, 0x0, 0x4, 0x0, 0x0];
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_long().unwrap(), 1024 | 1024 << 32);
+    }
+
+    #[test]
+    fn read_float() {
+        let buffer = 123.456f32.to_le_bytes();
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_float().unwrap(), 123.456);
+    }
+
+    #[test]
+    fn read_double() {
+        let buffer = 123.456f64.to_le_bytes();
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_double().unwrap(), 123.456);
+    }
+
+    #[test]
+    fn read_string() {
+        let buffer = b"Hello, world!".to_vec();
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_string(buffer.len()).unwrap(), "Hello, world!");
+    }
+
+    #[test]
+    fn read_bool() {
+        let buffer = [0, 1];
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_bool().unwrap(), false);
+        assert_eq!(reader.read_bool().unwrap(), true);
+    }
+
+    #[test]
+    fn read_bytes() {
+        let buffer = b"Hello, world!".to_vec();
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_bytes(buffer.len()).unwrap(), buffer);
+    }
+
+    #[test]
+    fn read_decimal() {
+        let buffer = [1; 16];
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_decimal().unwrap(), buffer);
+    }
+
+    #[test]
+    fn read_value_type() {
+        let buffer = [ValueType::TimeSpan as u8, ValueType::String as u8];
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_value_type().unwrap(), ValueType::TimeSpan);
+        assert_eq!(reader.read_value_type().unwrap(), ValueType::String);
+    }
+
+    #[test]
+    fn read_section_id() {
+        let buffer = [0xdf, 0x5b, 0x2];
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_section_id().unwrap(), SectionId::TableMetadata);
+    }
+
+    #[test]
+    fn read_file_header() {
+        let buffer = [0x1, 0x0];
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(
+            reader.read_file_header().unwrap(),
+            FileHeader {
+                major_version: 1,
+                minor_version: 0
+            }
+        );
     }
 }
