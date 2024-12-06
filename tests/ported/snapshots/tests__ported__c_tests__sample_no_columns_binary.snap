@@ -1,0 +1,22 @@
+---
+source: tests/ported/c_tests.rs
+expression: sbdf
+---
+Sbdf(
+  file_header: FileHeader(
+    major_version: 1,
+    minor_version: 0,
+  ),
+  table_metadata: TableMetadata(
+    metadata: [
+      Metadata(
+        name: "SbdfTest.TableMetaBinary",
+        value: Binary([
+          1,
+        ]),
+      ),
+    ],
+    columns: [],
+  ),
+  table_slices: [],
+)

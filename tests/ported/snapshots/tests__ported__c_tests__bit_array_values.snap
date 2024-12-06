@@ -1,0 +1,94 @@
+---
+source: tests/ported/c_tests.rs
+expression: "(&sbdf, all_values)"
+---
+(Sbdf(
+  file_header: FileHeader(
+    major_version: 1,
+    minor_version: 0,
+  ),
+  table_metadata: TableMetadata(
+    metadata: [],
+    columns: [
+      ColumnMetadata(
+        name: "A",
+        ty: Int,
+        other: [],
+      ),
+      ColumnMetadata(
+        name: "B",
+        ty: String,
+        other: [],
+      ),
+      ColumnMetadata(
+        name: "C",
+        ty: Double,
+        other: [],
+      ),
+    ],
+  ),
+  table_slices: [
+    TableSlice(
+      column_slices: [
+        ColumnSlice(
+          values: Plain(
+            value: IntArray([
+              1,
+              2,
+              0,
+            ]),
+          ),
+          properties: [
+            Property(
+              name: "IsInvalid",
+              values: BitArray(
+                bit_count: 3,
+                bytes: [
+                  32,
+                ],
+              ),
+            ),
+          ],
+        ),
+        ColumnSlice(
+          values: Plain(
+            value: StringArray([
+              "Foo",
+              "Fie",
+              "Fum",
+            ]),
+          ),
+          properties: [],
+        ),
+        ColumnSlice(
+          values: Plain(
+            value: DoubleArray([
+              3.5,
+              100.0,
+              NaN,
+            ]),
+          ),
+          properties: [],
+        ),
+      ],
+    ),
+  ],
+), [
+  [
+    IntArray([
+      1,
+      2,
+      0,
+    ]),
+    StringArray([
+      "Foo",
+      "Fie",
+      "Fum",
+    ]),
+    DoubleArray([
+      3.5,
+      100.0,
+      NaN,
+    ]),
+  ],
+])

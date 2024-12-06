@@ -1,0 +1,97 @@
+---
+source: tests/ported/c_tests.rs
+expression: sbdf
+---
+Sbdf(
+  file_header: FileHeader(
+    major_version: 1,
+    minor_version: 0,
+  ),
+  table_metadata: TableMetadata(
+    metadata: [],
+    columns: [
+      ColumnMetadata(
+        name: "A",
+        ty: Int,
+        other: [],
+      ),
+      ColumnMetadata(
+        name: "B",
+        ty: String,
+        other: [],
+      ),
+      ColumnMetadata(
+        name: "C",
+        ty: Double,
+        other: [],
+      ),
+      ColumnMetadata(
+        name: "D",
+        ty: Date,
+        other: [],
+      ),
+    ],
+  ),
+  table_slices: [
+    TableSlice(
+      column_slices: [
+        ColumnSlice(
+          values: Plain(
+            value: IntArray([
+              1,
+              2,
+            ]),
+          ),
+          properties: [],
+        ),
+        ColumnSlice(
+          values: Plain(
+            value: StringArray([
+              "Foo",
+              "Fie",
+            ]),
+          ),
+          properties: [],
+        ),
+        ColumnSlice(
+          values: Plain(
+            value: DoubleArray([
+              3.5,
+              100.0,
+            ]),
+          ),
+          properties: [
+            Property(
+              name: "HasReplacedValue",
+              values: BitArray(
+                bit_count: 2,
+                bytes: [
+                  128,
+                ],
+              ),
+            ),
+          ],
+        ),
+        ColumnSlice(
+          values: Plain(
+            value: DateArray([
+              12345,
+              0,
+            ]),
+          ),
+          properties: [
+            Property(
+              name: "ErrorCode",
+              values: Plain(
+                value: StringArray([
+                  "",
+                  "illegal value",
+                ]),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  ],
+)

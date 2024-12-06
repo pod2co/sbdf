@@ -1,0 +1,42 @@
+---
+source: tests/ported/c_tests.rs
+expression: sbdf
+---
+Sbdf(
+  file_header: FileHeader(
+    major_version: 1,
+    minor_version: 0,
+  ),
+  table_metadata: TableMetadata(
+    metadata: [
+      Metadata(
+        name: "SbdfTest.TableMetaDecimal",
+        value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+      ),
+    ],
+    columns: [
+      ColumnMetadata(
+        name: "Decimal",
+        ty: Decimal,
+        other: [
+          Metadata(
+            name: "SbdfTest.ColumnMetaDecimal0",
+            value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+          ),
+        ],
+      ),
+    ],
+  ),
+  table_slices: [
+    TableSlice(
+      column_slices: [
+        ColumnSlice(
+          values: Plain(
+            value: Decimal((87, 105, 168, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+          ),
+          properties: [],
+        ),
+      ],
+    ),
+  ],
+)

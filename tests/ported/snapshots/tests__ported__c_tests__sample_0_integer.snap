@@ -1,0 +1,31 @@
+---
+source: tests/ported/c_tests.rs
+expression: sbdf
+---
+Sbdf(
+  file_header: FileHeader(
+    major_version: 1,
+    minor_version: 0,
+  ),
+  table_metadata: TableMetadata(
+    metadata: [
+      Metadata(
+        name: "SbdfTest.TableMetaInteger",
+        value: Int(3),
+      ),
+    ],
+    columns: [
+      ColumnMetadata(
+        name: "Integer",
+        ty: Int,
+        other: [
+          Metadata(
+            name: "SbdfTest.ColumnMetaInteger0",
+            value: Int(3),
+          ),
+        ],
+      ),
+    ],
+  ),
+  table_slices: [],
+)

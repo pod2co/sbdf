@@ -1,0 +1,42 @@
+---
+source: tests/ported/c_tests.rs
+expression: sbdf
+---
+Sbdf(
+  file_header: FileHeader(
+    major_version: 1,
+    minor_version: 0,
+  ),
+  table_metadata: TableMetadata(
+    metadata: [
+      Metadata(
+        name: "SbdfTest.TableMetaString",
+        value: String("The"),
+      ),
+    ],
+    columns: [
+      ColumnMetadata(
+        name: "String",
+        ty: String,
+        other: [
+          Metadata(
+            name: "SbdfTest.ColumnMetaString0",
+            value: String("The"),
+          ),
+        ],
+      ),
+    ],
+  ),
+  table_slices: [
+    TableSlice(
+      column_slices: [
+        ColumnSlice(
+          values: Plain(
+            value: String("The"),
+          ),
+          properties: [],
+        ),
+      ],
+    ),
+  ],
+)

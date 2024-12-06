@@ -1,0 +1,42 @@
+---
+source: tests/ported/c_tests.rs
+expression: sbdf
+---
+Sbdf(
+  file_header: FileHeader(
+    major_version: 1,
+    minor_version: 0,
+  ),
+  table_metadata: TableMetadata(
+    metadata: [
+      Metadata(
+        name: "SbdfTest.TableMetaDouble",
+        value: Double(3.14),
+      ),
+    ],
+    columns: [
+      ColumnMetadata(
+        name: "Double",
+        ty: Double,
+        other: [
+          Metadata(
+            name: "SbdfTest.ColumnMetaDouble0",
+            value: Double(3.14),
+          ),
+        ],
+      ),
+    ],
+  ),
+  table_slices: [
+    TableSlice(
+      column_slices: [
+        ColumnSlice(
+          values: Plain(
+            value: Double(103.62),
+          ),
+          properties: [],
+        ),
+      ],
+    ),
+  ],
+)

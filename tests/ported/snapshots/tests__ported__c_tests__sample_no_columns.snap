@@ -1,0 +1,66 @@
+---
+source: tests/ported/c_tests.rs
+expression: sbdf
+---
+Sbdf(
+  file_header: FileHeader(
+    major_version: 1,
+    minor_version: 0,
+  ),
+  table_metadata: TableMetadata(
+    metadata: [
+      Metadata(
+        name: "SbdfTest.TableMetaBoolean",
+        value: Bool(true),
+      ),
+      Metadata(
+        name: "SbdfTest.TableMetaInteger",
+        value: Int(3),
+      ),
+      Metadata(
+        name: "SbdfTest.TableMetaLong",
+        value: Long(2),
+      ),
+      Metadata(
+        name: "SbdfTest.TableMetaFloat",
+        value: Float(0.33333334),
+      ),
+      Metadata(
+        name: "SbdfTest.TableMetaDouble",
+        value: Double(3.14),
+      ),
+      Metadata(
+        name: "SbdfTest.TableMetaDateTime",
+        value: DateTime(49923043200000),
+      ),
+      Metadata(
+        name: "SbdfTest.TableMetaDate",
+        value: Date(49923043200000),
+      ),
+      Metadata(
+        name: "SbdfTest.TableMetaTime",
+        value: Time(33000),
+      ),
+      Metadata(
+        name: "SbdfTest.TableMetaTimeSpan",
+        value: TimeSpan(12300),
+      ),
+      Metadata(
+        name: "SbdfTest.TableMetaString",
+        value: String("The"),
+      ),
+      Metadata(
+        name: "SbdfTest.TableMetaDecimal",
+        value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+      ),
+      Metadata(
+        name: "SbdfTest.TableMetaBinary",
+        value: Binary([
+          1,
+        ]),
+      ),
+    ],
+    columns: [],
+  ),
+  table_slices: [],
+)

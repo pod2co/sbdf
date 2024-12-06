@@ -1,0 +1,42 @@
+---
+source: tests/ported/c_tests.rs
+expression: sbdf
+---
+Sbdf(
+  file_header: FileHeader(
+    major_version: 1,
+    minor_version: 0,
+  ),
+  table_metadata: TableMetadata(
+    metadata: [
+      Metadata(
+        name: "SbdfTest.TableMetaDateTime",
+        value: DateTime(49923043200000),
+      ),
+    ],
+    columns: [
+      ColumnMetadata(
+        name: "DateTime",
+        ty: DateTime,
+        other: [
+          Metadata(
+            name: "SbdfTest.ColumnMetaDateTime0",
+            value: DateTime(49923043200000),
+          ),
+        ],
+      ),
+    ],
+  ),
+  table_slices: [
+    TableSlice(
+      column_slices: [
+        ColumnSlice(
+          values: Plain(
+            value: DateTime(49923129600000),
+          ),
+          properties: [],
+        ),
+      ],
+    ),
+  ],
+)

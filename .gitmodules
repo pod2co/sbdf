@@ -1,0 +1,3 @@
+[submodule "tests/ported/spotfire-sbdf-c"]
+	path = tests/ported/spotfire-sbdf-c
+	url = git@github.com:pod2co/spotfire-sbdf-c

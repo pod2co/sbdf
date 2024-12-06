@@ -1,0 +1,42 @@
+---
+source: tests/ported/c_tests.rs
+expression: sbdf
+---
+Sbdf(
+  file_header: FileHeader(
+    major_version: 1,
+    minor_version: 0,
+  ),
+  table_metadata: TableMetadata(
+    metadata: [
+      Metadata(
+        name: "SbdfTest.TableMetaTimeSpan",
+        value: TimeSpan(12300),
+      ),
+    ],
+    columns: [
+      ColumnMetadata(
+        name: "TimeSpan",
+        ty: TimeSpan,
+        other: [
+          Metadata(
+            name: "SbdfTest.ColumnMetaTimeSpan0",
+            value: TimeSpan(12300),
+          ),
+        ],
+      ),
+    ],
+  ),
+  table_slices: [
+    TableSlice(
+      column_slices: [
+        ColumnSlice(
+          values: Plain(
+            value: TimeSpan(405900),
+          ),
+          properties: [],
+        ),
+      ],
+    ),
+  ],
+)

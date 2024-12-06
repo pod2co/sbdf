@@ -1,0 +1,42 @@
+---
+source: tests/ported/c_tests.rs
+expression: sbdf
+---
+Sbdf(
+  file_header: FileHeader(
+    major_version: 1,
+    minor_version: 0,
+  ),
+  table_metadata: TableMetadata(
+    metadata: [
+      Metadata(
+        name: "SbdfTest.TableMetaLong",
+        value: Long(2),
+      ),
+    ],
+    columns: [
+      ColumnMetadata(
+        name: "Long",
+        ty: Long,
+        other: [
+          Metadata(
+            name: "SbdfTest.ColumnMetaLong0",
+            value: Long(2),
+          ),
+        ],
+      ),
+    ],
+  ),
+  table_slices: [
+    TableSlice(
+      column_slices: [
+        ColumnSlice(
+          values: Plain(
+            value: Long(66),
+          ),
+          properties: [],
+        ),
+      ],
+    ),
+  ],
+)
