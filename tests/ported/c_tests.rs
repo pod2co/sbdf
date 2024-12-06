@@ -300,7 +300,7 @@ test_no_snapshot!(
 );
 
 #[test]
-fn bit_array_values() {
+fn loads_values() {
     let sbdf = read_file("tests/ported/spotfire-sbdf-c/tests/3x3_cs.sbdf");
     let all_values = sbdf
         .table_slices()

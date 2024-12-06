@@ -1,6 +1,6 @@
 ---
 source: tests/ported/python_tests.rs
-expression: "read_file(\"tests/ported/spotfire-sbdf-c/tests/samples/0.sbdf\")"
+expression: sbdf
 ---
 Sbdf(
   file_header: FileHeader(
