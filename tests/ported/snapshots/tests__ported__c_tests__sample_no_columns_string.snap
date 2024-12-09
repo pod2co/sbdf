@@ -12,6 +12,7 @@ Sbdf(
       Metadata(
         name: "SbdfTest.TableMetaString",
         value: String("The"),
+        default_value: None,
       ),
     ],
     columns: [],

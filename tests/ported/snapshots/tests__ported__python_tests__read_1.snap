@@ -12,52 +12,64 @@ Sbdf(
       Metadata(
         name: "SbdfTest.TableMetaBoolean",
         value: Bool(true),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaInteger",
         value: Int(3),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaLong",
         value: Long(2),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaFloat",
         value: Float(0.33333334),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaDouble",
         value: Double(3.14),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaDateTime",
         value: DateTime(49923043200000),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaDate",
         value: Date(49923043200000),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaTime",
         value: Time(33000),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaTimeSpan",
         value: TimeSpan(12300),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaString",
         value: String("The"),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaDecimal",
         value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaBinary",
         value: Binary([
           1,
         ]),
+        default_value: None,
       ),
     ],
     columns: [
@@ -68,52 +80,64 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaBoolean0",
             value: Bool(true),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaInteger0",
             value: Int(3),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaLong0",
             value: Long(2),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaFloat0",
             value: Float(0.33333334),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDouble0",
             value: Double(3.14),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDateTime0",
             value: DateTime(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDate0",
             value: Date(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTime0",
             value: Time(33000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTimeSpan0",
             value: TimeSpan(12300),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaString0",
             value: String("The"),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDecimal0",
             value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaBinary0",
             value: Binary([
               1,
             ]),
+            default_value: None,
           ),
         ],
       ),
@@ -124,52 +148,64 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaBoolean1",
             value: Bool(true),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaInteger1",
             value: Int(3),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaLong1",
             value: Long(2),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaFloat1",
             value: Float(0.33333334),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDouble1",
             value: Double(3.14),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDateTime1",
             value: DateTime(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDate1",
             value: Date(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTime1",
             value: Time(33000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTimeSpan1",
             value: TimeSpan(12300),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaString1",
             value: String("The"),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDecimal1",
             value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaBinary1",
             value: Binary([
               1,
             ]),
+            default_value: None,
           ),
         ],
       ),
@@ -180,52 +216,64 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaBoolean2",
             value: Bool(true),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaInteger2",
             value: Int(3),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaLong2",
             value: Long(2),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaFloat2",
             value: Float(0.33333334),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDouble2",
             value: Double(3.14),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDateTime2",
             value: DateTime(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDate2",
             value: Date(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTime2",
             value: Time(33000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTimeSpan2",
             value: TimeSpan(12300),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaString2",
             value: String("The"),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDecimal2",
             value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaBinary2",
             value: Binary([
               1,
             ]),
+            default_value: None,
           ),
         ],
       ),
@@ -236,52 +284,64 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaBoolean3",
             value: Bool(true),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaInteger3",
             value: Int(3),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaLong3",
             value: Long(2),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaFloat3",
             value: Float(0.33333334),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDouble3",
             value: Double(3.14),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDateTime3",
             value: DateTime(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDate3",
             value: Date(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTime3",
             value: Time(33000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTimeSpan3",
             value: TimeSpan(12300),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaString3",
             value: String("The"),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDecimal3",
             value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaBinary3",
             value: Binary([
               1,
             ]),
+            default_value: None,
           ),
         ],
       ),
@@ -292,52 +352,64 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaBoolean4",
             value: Bool(true),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaInteger4",
             value: Int(3),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaLong4",
             value: Long(2),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaFloat4",
             value: Float(0.33333334),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDouble4",
             value: Double(3.14),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDateTime4",
             value: DateTime(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDate4",
             value: Date(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTime4",
             value: Time(33000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTimeSpan4",
             value: TimeSpan(12300),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaString4",
             value: String("The"),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDecimal4",
             value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaBinary4",
             value: Binary([
               1,
             ]),
+            default_value: None,
           ),
         ],
       ),
@@ -348,52 +420,64 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaBoolean5",
             value: Bool(true),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaInteger5",
             value: Int(3),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaLong5",
             value: Long(2),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaFloat5",
             value: Float(0.33333334),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDouble5",
             value: Double(3.14),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDateTime5",
             value: DateTime(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDate5",
             value: Date(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTime5",
             value: Time(33000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTimeSpan5",
             value: TimeSpan(12300),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaString5",
             value: String("The"),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDecimal5",
             value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaBinary5",
             value: Binary([
               1,
             ]),
+            default_value: None,
           ),
         ],
       ),
@@ -404,52 +488,64 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaBoolean6",
             value: Bool(true),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaInteger6",
             value: Int(3),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaLong6",
             value: Long(2),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaFloat6",
             value: Float(0.33333334),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDouble6",
             value: Double(3.14),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDateTime6",
             value: DateTime(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDate6",
             value: Date(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTime6",
             value: Time(33000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTimeSpan6",
             value: TimeSpan(12300),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaString6",
             value: String("The"),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDecimal6",
             value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaBinary6",
             value: Binary([
               1,
             ]),
+            default_value: None,
           ),
         ],
       ),
@@ -460,52 +556,64 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaBoolean7",
             value: Bool(true),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaInteger7",
             value: Int(3),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaLong7",
             value: Long(2),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaFloat7",
             value: Float(0.33333334),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDouble7",
             value: Double(3.14),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDateTime7",
             value: DateTime(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDate7",
             value: Date(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTime7",
             value: Time(33000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTimeSpan7",
             value: TimeSpan(12300),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaString7",
             value: String("The"),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDecimal7",
             value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaBinary7",
             value: Binary([
               1,
             ]),
+            default_value: None,
           ),
         ],
       ),
@@ -516,52 +624,64 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaBoolean8",
             value: Bool(true),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaInteger8",
             value: Int(3),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaLong8",
             value: Long(2),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaFloat8",
             value: Float(0.33333334),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDouble8",
             value: Double(3.14),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDateTime8",
             value: DateTime(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDate8",
             value: Date(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTime8",
             value: Time(33000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTimeSpan8",
             value: TimeSpan(12300),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaString8",
             value: String("The"),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDecimal8",
             value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaBinary8",
             value: Binary([
               1,
             ]),
+            default_value: None,
           ),
         ],
       ),
@@ -572,52 +692,64 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaBoolean9",
             value: Bool(true),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaInteger9",
             value: Int(3),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaLong9",
             value: Long(2),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaFloat9",
             value: Float(0.33333334),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDouble9",
             value: Double(3.14),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDateTime9",
             value: DateTime(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDate9",
             value: Date(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTime9",
             value: Time(33000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTimeSpan9",
             value: TimeSpan(12300),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaString9",
             value: String("The"),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDecimal9",
             value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaBinary9",
             value: Binary([
               1,
             ]),
+            default_value: None,
           ),
         ],
       ),
@@ -628,52 +760,64 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaBoolean10",
             value: Bool(true),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaInteger10",
             value: Int(3),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaLong10",
             value: Long(2),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaFloat10",
             value: Float(0.33333334),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDouble10",
             value: Double(3.14),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDateTime10",
             value: DateTime(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDate10",
             value: Date(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTime10",
             value: Time(33000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTimeSpan10",
             value: TimeSpan(12300),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaString10",
             value: String("The"),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDecimal10",
             value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaBinary10",
             value: Binary([
               1,
             ]),
+            default_value: None,
           ),
         ],
       ),
@@ -684,52 +828,64 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaBoolean11",
             value: Bool(true),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaInteger11",
             value: Int(3),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaLong11",
             value: Long(2),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaFloat11",
             value: Float(0.33333334),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDouble11",
             value: Double(3.14),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDateTime11",
             value: DateTime(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDate11",
             value: Date(49923043200000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTime11",
             value: Time(33000),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaTimeSpan11",
             value: TimeSpan(12300),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaString11",
             value: String("The"),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaDecimal11",
             value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+            default_value: None,
           ),
           Metadata(
             name: "SbdfTest.ColumnMetaBinary11",
             value: Binary([
               1,
             ]),
+            default_value: None,
           ),
         ],
       ),

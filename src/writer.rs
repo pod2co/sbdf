@@ -1,6 +1,29 @@
 use std::io::Cursor;
 
-use crate::{Decimal, FileHeader, SbdfError, SectionId, ValueType};
+use crate::{
+    ColumnMetadataType, ColumnSlice, Decimal, EncodedValue, FileHeader, Metadata, Object, Property,
+    SbdfError, SectionId, TableMetadata, TableSlice, ValueArrayEncoding, ValueType,
+};
+
+fn bytes_needed_for_7bit_packed_int(value: i32) -> i32 {
+    if value < 1 << 7 {
+        return 1;
+    }
+
+    if value < 1 << 14 {
+        return 2;
+    }
+
+    if value < 1 << 21 {
+        return 3;
+    }
+
+    if value < 1 << 28 {
+        return 4;
+    }
+
+    5
+}
 
 #[derive(Debug)]
 pub struct SbdfWriter<'a> {
@@ -35,44 +58,200 @@ impl<'a> SbdfWriter<'a> {
         Ok(())
     }
 
+    fn write_bytes_without_length(&mut self, value: &[u8]) -> Result<(), SbdfError> {
+        self.cursor.get_mut().extend_from_slice(value);
+        Ok(())
+    }
+
     fn write_int(&mut self, value: i32) -> Result<(), SbdfError> {
-        self.write_bytes(&value.to_le_bytes())
+        self.write_bytes_without_length(&value.to_le_bytes())
     }
 
     fn write_long(&mut self, value: i64) -> Result<(), SbdfError> {
-        self.write_bytes(&value.to_le_bytes())
+        self.write_bytes_without_length(&value.to_le_bytes())
     }
 
     fn write_float(&mut self, value: f32) -> Result<(), SbdfError> {
-        self.write_bytes(&value.to_le_bytes())
+        self.write_bytes_without_length(&value.to_le_bytes())
     }
 
     fn write_double(&mut self, value: f64) -> Result<(), SbdfError> {
-        self.write_bytes(&value.to_le_bytes())
+        self.write_bytes_without_length(&value.to_le_bytes())
     }
 
-    fn write_string(&mut self, value: &str) -> Result<(), SbdfError> {
-        self.write_bytes(value.as_bytes())
+    fn write_string(&mut self, value: &str, is_packed_array: bool) -> Result<(), SbdfError> {
+        let bytes = value.as_bytes();
+        let len: i32 = bytes
+            .len()
+            .try_into()
+            .map_err(|_| SbdfError::StringTooLong)?;
+
+        if is_packed_array {
+            self.write_7bit_packed_int(len)?;
+        } else {
+            self.write_int(len)?;
+        }
+
+        self.write_bytes_without_length(bytes)
     }
 
     fn write_bool(&mut self, value: bool) -> Result<(), SbdfError> {
         self.write_byte(if value { 1 } else { 0 })
     }
 
-    fn write_bytes(&mut self, value: &[u8]) -> Result<(), SbdfError> {
-        self.cursor.get_mut().extend_from_slice(value);
-        Ok(())
+    fn write_bytes(&mut self, value: &[u8], is_packed_array: bool) -> Result<(), SbdfError> {
+        let len: i32 = value
+            .len()
+            .try_into()
+            .map_err(|_| SbdfError::BytesTooLong)?;
+
+        if is_packed_array {
+            self.write_7bit_packed_int(len)?;
+        } else {
+            self.write_int(len)?;
+        }
+
+        self.write_bytes_without_length(value)
     }
 
-    fn write_decimal(&mut self, value: Decimal) -> Result<(), SbdfError> {
-        self.write_bytes(&value)
+    fn write_decimal(&mut self, value: &Decimal) -> Result<(), SbdfError> {
+        self.write_bytes_without_length(value)
+    }
+
+    fn write_multiple<T, F>(&mut self, values: &[T], write_fn: F) -> Result<(), SbdfError>
+    where
+        F: Fn(&mut Self, &T) -> Result<(), SbdfError>,
+    {
+        for value in values.iter() {
+            write_fn(self, value)?;
+        }
+
+        Ok(())
     }
 
     fn write_value_type(&mut self, value: ValueType) -> Result<(), SbdfError> {
         self.write_byte(value as u8)
     }
 
-    fn write_section_id(&mut self, section_id: SectionId) -> Result<(), SbdfError> {
+    fn write_object(&mut self, object: &Object, is_packed_array: bool) -> Result<(), SbdfError> {
+        let checked_add_or_err =
+            |a: i32, b: i32| a.checked_add(b).ok_or(SbdfError::TooManyValuesInArray);
+
+        match object {
+            Object::Bool(b) => self.write_bool(*b),
+            Object::Int(i) => self.write_int(*i),
+            Object::Long(l) => self.write_long(*l),
+            Object::Float(f) => self.write_float(*f),
+            Object::Double(d) => self.write_double(*d),
+            Object::DateTime(dt) => self.write_long(*dt),
+            Object::Date(d) => self.write_long(*d),
+            Object::Time(t) => self.write_long(*t),
+            Object::TimeSpan(ts) => self.write_long(*ts),
+            Object::String(s) => {
+                if is_packed_array {
+                    // Write the byte size of the string, even though it won't be used by readers.
+                    let string_len: i32 = s
+                        .as_bytes()
+                        .len()
+                        .try_into()
+                        .map_err(|_| SbdfError::StringTooLong)?;
+
+                    let byte_len = checked_add_or_err(
+                        bytes_needed_for_7bit_packed_int(string_len),
+                        string_len,
+                    )?;
+                    self.write_int(byte_len)?;
+                }
+
+                self.write_string(s, is_packed_array)
+            }
+            Object::Binary(b) => {
+                if is_packed_array {
+                    // Write the byte size of the binary, even though it won't be used by readers.
+                    let binary_len: i32 =
+                        b.len().try_into().map_err(|_| SbdfError::BytesTooLong)?;
+
+                    let byte_len = checked_add_or_err(
+                        bytes_needed_for_7bit_packed_int(binary_len),
+                        binary_len,
+                    )?;
+                    self.write_int(byte_len)?;
+                }
+
+                self.write_bytes(b, is_packed_array)
+            }
+            Object::Decimal(d) => self.write_decimal(d),
+            Object::BoolArray(a) => self.write_multiple(a, |w, ts| w.write_bool(*ts)),
+            Object::IntArray(a) => self.write_multiple(a, |w, ts| w.write_int(*ts)),
+            Object::LongArray(a) => self.write_multiple(a, |w, ts| w.write_long(*ts)),
+            Object::FloatArray(a) => self.write_multiple(a, |w, ts| w.write_float(*ts)),
+            Object::DoubleArray(a) => self.write_multiple(a, |w, ts| w.write_double(*ts)),
+            Object::DateTimeArray(a) => self.write_multiple(a, |w, ts| w.write_long(*ts)),
+            Object::DateArray(a) => self.write_multiple(a, |w, ts| w.write_long(*ts)),
+            Object::TimeArray(a) => self.write_multiple(a, |w, ts| w.write_long(*ts)),
+            Object::TimeSpanArray(vec) => self.write_multiple(vec, |w, ts| w.write_long(*ts)),
+            Object::StringArray(a) => {
+                if is_packed_array {
+                    // Write the byte size of the string array, even though it won't be used by readers.
+                    let mut total_byte_size = 0i32;
+
+                    for s in a.iter() {
+                        let string_len: i32 = s
+                            .as_bytes()
+                            .len()
+                            .try_into()
+                            .map_err(|_| SbdfError::StringTooLong)?;
+
+                        total_byte_size = checked_add_or_err(
+                            total_byte_size,
+                            bytes_needed_for_7bit_packed_int(string_len),
+                        )?;
+                        total_byte_size = checked_add_or_err(total_byte_size, string_len)?;
+                    }
+
+                    self.write_int(total_byte_size)?;
+                }
+
+                for s in a.iter() {
+                    self.write_string(s, is_packed_array)?;
+                }
+
+                Ok(())
+            }
+            Object::BinaryArray(a) => {
+                if is_packed_array {
+                    // Write the byte size of the binary array, even though it won't be used by readers.
+                    let mut total_byte_size = 0i32;
+
+                    for b in a.iter() {
+                        let binary_len: i32 =
+                            b.len().try_into().map_err(|_| SbdfError::BytesTooLong)?;
+
+                        total_byte_size = checked_add_or_err(
+                            total_byte_size,
+                            bytes_needed_for_7bit_packed_int(binary_len),
+                        )?;
+                        total_byte_size = checked_add_or_err(total_byte_size, binary_len)?;
+                    }
+
+                    self.write_int(total_byte_size)?;
+                }
+
+                for b in a.iter() {
+                    self.write_bytes(b, is_packed_array)?;
+                }
+
+                Ok(())
+            }
+            Object::DecimalArray(vec) => self.write_multiple(vec, SbdfWriter::write_decimal),
+        }
+    }
+
+    fn write_unpacked_object(&mut self, value: &Object) -> Result<(), SbdfError> {
+        self.write_object(value, false)
+    }
+
+    pub fn write_section_id(&mut self, section_id: SectionId) -> Result<(), SbdfError> {
         // Write the magic number followed by the section ID.
         self.write_byte(0xdfu8)?;
         self.write_byte(0x5bu8)?;
@@ -80,9 +259,213 @@ impl<'a> SbdfWriter<'a> {
         Ok(())
     }
 
-    fn write_file_header(&mut self, file_header: &FileHeader) -> Result<(), SbdfError> {
+    pub fn write_file_header(&mut self, file_header: &FileHeader) -> Result<(), SbdfError> {
         self.write_byte(file_header.major_version)?;
         self.write_byte(file_header.minor_version)?;
+        Ok(())
+    }
+
+    fn write_metadata_value(&mut self, value: Option<&Object>) -> Result<(), SbdfError> {
+        // Currently we don't bother to check if the count is <= 1. Instead we assume this could
+        // happen earlier in a builder where it can be checked.
+        match value {
+            None => self.write_byte(0),
+            Some(value) => {
+                self.write_byte(1)?;
+                self.write_unpacked_object(value)
+            }
+        }
+    }
+
+    fn write_metadata(&mut self, metadata: &Metadata) -> Result<(), SbdfError> {
+        self.write_string(&metadata.name, false)?;
+        self.write_value_type(metadata.value.value_type())?;
+        self.write_metadata_value(Some(&metadata.value))?;
+        self.write_metadata_value(metadata.default_value.as_ref())?;
+
+        Ok(())
+    }
+
+    pub fn write_table_metadata(
+        &mut self,
+        table_metadata: &TableMetadata,
+    ) -> Result<(), SbdfError> {
+        let table_metadata_count: i32 = table_metadata
+            .metadata
+            .len()
+            .try_into()
+            .map_err(|_| SbdfError::TooManyMetadata)?;
+        self.write_int(table_metadata_count)?;
+
+        for metadata in table_metadata.metadata.iter() {
+            self.write_metadata(metadata)?;
+        }
+
+        let column_count: i32 = table_metadata
+            .columns
+            .len()
+            .try_into()
+            .map_err(|_| SbdfError::TooManyColumns)?;
+        self.write_int(column_count)?;
+
+        // Find unique metadata across all columns by (name, type, default value). We
+        // enumerate here so that we can restore the original order of the metadata later, as done
+        // in other implementations.
+        let mut unique_metadata = table_metadata
+            .columns
+            .iter()
+            .flat_map(|c| c.metadata_types())
+            .enumerate()
+            .collect::<Vec<_>>();
+
+        // Sort and deduplicate metadata by name only. We assume that no two columns will have the
+        // same name but different types or default values, which is consistent with how this is
+        // done in other implementations.
+        //
+        // We include the original order so we'll keep the lowest index of any duplicates, which is
+        // useful for restoring the original order later.
+        unique_metadata.sort_unstable_by_key(
+            |&(original_order, ColumnMetadataType { name, .. })| (name, original_order),
+        );
+        unique_metadata.dedup_by_key(|&mut (_, ColumnMetadataType { name, .. })| name);
+
+        let unique_metadata_count: i32 = unique_metadata
+            .len()
+            .try_into()
+            .map_err(|_| SbdfError::TooManyMetadata)?;
+        self.write_int(unique_metadata_count)?;
+
+        // Restore the original order of the metadata.
+        unique_metadata.sort_unstable_by_key(|(original_order, _)| *original_order);
+
+        for (
+            _,
+            ColumnMetadataType {
+                name,
+                ty,
+                default_value,
+            },
+        ) in unique_metadata.iter()
+        {
+            self.write_string(name, false)?;
+            self.write_value_type(*ty)?;
+            self.write_metadata_value(*default_value)?;
+        }
+
+        for column in table_metadata.columns.iter() {
+            for (_, ColumnMetadataType { name, .. }) in unique_metadata.iter() {
+                match column.get(name) {
+                    Some(value) => {
+                        self.write_bool(true)?;
+
+                        self.write_unpacked_object(value.as_ref())?;
+                    }
+                    None => {
+                        self.write_bool(false)?;
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn write_object_packed_array(&mut self, value: &Object) -> Result<(), SbdfError> {
+        let count = match value {
+            Object::Bool(_)
+            | Object::Int(_)
+            | Object::Long(_)
+            | Object::Float(_)
+            | Object::Double(_)
+            | Object::DateTime(_)
+            | Object::Date(_)
+            | Object::Time(_)
+            | Object::TimeSpan(_)
+            | Object::String(_)
+            | Object::Binary(_)
+            | Object::Decimal(_) => 1usize,
+            Object::BoolArray(a) => a.len(),
+            Object::IntArray(a) => a.len(),
+            Object::LongArray(a) => a.len(),
+            Object::FloatArray(a) => a.len(),
+            Object::DoubleArray(a) => a.len(),
+            Object::DateTimeArray(a) => a.len(),
+            Object::DateArray(a) => a.len(),
+            Object::TimeArray(a) => a.len(),
+            Object::TimeSpanArray(a) => a.len(),
+            Object::StringArray(a) => a.len(),
+            Object::BinaryArray(a) => a.len(),
+            Object::DecimalArray(a) => a.len(),
+        }
+        .try_into()
+        .map_err(|_| SbdfError::TooManyValuesInArray)?;
+        self.write_int(count)?;
+
+        self.write_object(value, true)
+    }
+
+    fn write_value_array(&mut self, values: &EncodedValue) -> Result<(), SbdfError> {
+        match values {
+            EncodedValue::Plain { value } => {
+                self.write_byte(ValueArrayEncoding::Plain as u8)?;
+                self.write_value_type(value.value_type())?;
+                self.write_object_packed_array(value)?;
+
+                Ok(())
+            }
+            EncodedValue::RunLength { .. } => {
+                self.write_byte(ValueArrayEncoding::RunLength as u8)?;
+                todo!()
+            }
+            EncodedValue::BitArray { bit_count, bytes } => {
+                self.write_byte(ValueArrayEncoding::BitArray as u8)?;
+                self.write_value_type(ValueType::Bool)?;
+                let bit_count: i32 = (*bit_count)
+                    .try_into()
+                    .map_err(|_| SbdfError::BytesTooLong)?;
+                self.write_int(bit_count)?;
+                self.write_bytes_without_length(bytes)?;
+
+                Ok(())
+            }
+        }
+    }
+
+    fn write_properties(&mut self, properties: &[Property]) -> Result<(), SbdfError> {
+        let count: i32 = properties
+            .len()
+            .try_into()
+            .map_err(|_| SbdfError::TooManyProperties)?;
+        self.write_int(count)?;
+
+        for property in properties.iter() {
+            self.write_string(&property.name, false)?;
+            self.write_value_array(&property.values)?;
+        }
+
+        Ok(())
+    }
+
+    fn write_column_slice(&mut self, column_slice: &ColumnSlice) -> Result<(), SbdfError> {
+        self.write_section_id(SectionId::ColumnSlice)?;
+        self.write_value_array(&column_slice.values)?;
+        self.write_properties(&column_slice.properties)?;
+
+        Ok(())
+    }
+
+    pub fn write_table_slice(&mut self, table_slice: &TableSlice) -> Result<(), SbdfError> {
+        let column_count: i32 = table_slice
+            .column_slices
+            .len()
+            .try_into()
+            .map_err(|_| SbdfError::TooManyColumns)?;
+        self.write_int(column_count)?;
+
+        for column_slice in table_slice.column_slices.iter() {
+            self.write_column_slice(column_slice)?;
+        }
+
         Ok(())
     }
 }
@@ -143,11 +526,34 @@ mod tests {
     }
 
     #[test]
-    fn write_string() {
+    fn write_string_unpacked() {
         let mut buffer = Vec::new();
         let mut writer = SbdfWriter::new(Cursor::new(&mut buffer));
-        writer.write_string("Hello, world!").unwrap();
-        assert_eq!(buffer, "Hello, world!".as_bytes());
+        writer.write_string("Hello, world!", false).unwrap();
+
+        let mut expected_bytes = Vec::new();
+        let text = b"Hello, world!";
+        let length = (text.len() as i32).to_le_bytes();
+        expected_bytes.extend_from_slice(&length);
+        expected_bytes.extend_from_slice(text);
+
+        assert_eq!(buffer, expected_bytes);
+    }
+
+    #[test]
+    fn write_string_packed() {
+        let mut buffer = Vec::new();
+        let mut writer = SbdfWriter::new(Cursor::new(&mut buffer));
+        writer.write_string("Hello, world!", true).unwrap();
+
+        let mut expected_bytes = Vec::new();
+        let text = b"Hello, world!";
+        // Length is short enough to fit into a single byte without a continuation bit.
+        let length = text.len() as u8;
+        expected_bytes.push(length);
+        expected_bytes.extend_from_slice(text);
+
+        assert_eq!(buffer, expected_bytes);
     }
 
     #[test]
@@ -160,18 +566,41 @@ mod tests {
     }
 
     #[test]
-    fn write_bytes() {
+    fn write_bytes_unpacked() {
         let mut buffer = Vec::new();
         let mut writer = SbdfWriter::new(Cursor::new(&mut buffer));
-        writer.write_bytes(b"Hello, world!").unwrap();
-        assert_eq!(buffer, b"Hello, world!");
+        writer.write_bytes(b"Hello, world!", false).unwrap();
+
+        let mut expected_bytes = Vec::new();
+        let text = b"Hello, world!";
+        let length = (text.len() as i32).to_le_bytes();
+        expected_bytes.extend_from_slice(&length);
+        expected_bytes.extend_from_slice(text);
+
+        assert_eq!(buffer, expected_bytes);
+    }
+
+    #[test]
+    fn write_bytes_packed() {
+        let mut buffer = Vec::new();
+        let mut writer = SbdfWriter::new(Cursor::new(&mut buffer));
+        writer.write_bytes(b"Hello, world!", true).unwrap();
+
+        let mut expected_bytes = Vec::new();
+        let text = b"Hello, world!";
+        // Length is short enough to fit into a single byte without a continuation bit.
+        let length = text.len() as u8;
+        expected_bytes.push(length);
+        expected_bytes.extend_from_slice(text);
+
+        assert_eq!(buffer, expected_bytes);
     }
 
     #[test]
     fn write_decimal() {
         let mut buffer = Vec::new();
         let mut writer = SbdfWriter::new(Cursor::new(&mut buffer));
-        writer.write_decimal([1; 16]).unwrap();
+        writer.write_decimal(&[1; 16]).unwrap();
         assert_eq!(buffer, [1; 16]);
     }
 

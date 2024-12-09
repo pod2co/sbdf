@@ -12,6 +12,7 @@ Sbdf(
       Metadata(
         name: "SbdfTest.TableMetaDateTime",
         value: DateTime(49923043200000),
+        default_value: None,
       ),
     ],
     columns: [
@@ -22,6 +23,7 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaDateTime0",
             value: DateTime(49923043200000),
+            default_value: None,
           ),
         ],
       ),

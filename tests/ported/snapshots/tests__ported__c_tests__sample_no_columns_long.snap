@@ -12,6 +12,7 @@ Sbdf(
       Metadata(
         name: "SbdfTest.TableMetaLong",
         value: Long(2),
+        default_value: None,
       ),
     ],
     columns: [],

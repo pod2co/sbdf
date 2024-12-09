@@ -1,7 +1,8 @@
 use reader::SbdfReader;
 use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
+use std::{borrow::Cow, io::Cursor};
 use thiserror::Error;
+use writer::SbdfWriter;
 
 pub(crate) mod reader;
 pub(crate) mod writer;
@@ -11,8 +12,8 @@ const COLUMN_METADATA_TYPE: &'static str = "DataType";
 
 #[derive(Error, Debug)]
 pub enum SbdfError {
-    #[error("invalid byte")]
-    InvalidByte,
+    #[error("invalid bytes")]
+    InvalidBytes,
     #[error("invalid int")]
     InvalidInt,
     #[error("invalid long")]
@@ -55,6 +56,18 @@ pub enum SbdfError {
     ColumnCountMismatch,
     #[error("invalid encoding")]
     InvalidEncoding,
+    #[error("string too long")]
+    StringTooLong,
+    #[error("bytes too long")]
+    BytesTooLong,
+    #[error("too many columns")]
+    TooManyColumns,
+    #[error("too many metadata")]
+    TooManyMetadata,
+    #[error("too many properties")]
+    TooManyProperties,
+    #[error("too many values in array")]
+    TooManyValuesInArray,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -82,7 +95,7 @@ impl TryFrom<u8> for SectionId {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Sbdf {
     file_header: FileHeader,
     table_metadata: TableMetadata,
@@ -125,6 +138,28 @@ impl Sbdf {
         })
     }
 
+    pub fn to_bytes(&self) -> Result<Vec<u8>, SbdfError> {
+        let mut bytes = Vec::new();
+        let cursor = Cursor::new(&mut bytes);
+
+        let mut writer = SbdfWriter::new(cursor);
+
+        writer.write_section_id(SectionId::FileHeader)?;
+        writer.write_file_header(&self.file_header)?;
+
+        writer.write_section_id(SectionId::TableMetadata)?;
+        writer.write_table_metadata(&self.table_metadata)?;
+
+        for table_slice in self.table_slices.iter() {
+            writer.write_section_id(SectionId::TableSlice)?;
+            writer.write_table_slice(table_slice)?;
+        }
+
+        writer.write_section_id(SectionId::TableEnd)?;
+
+        Ok(bytes)
+    }
+
     pub fn table_slices(&self) -> &[TableSlice] {
         &self.table_slices
     }
@@ -136,7 +171,7 @@ struct FileHeader {
     minor_version: u8,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct TableMetadata {
     metadata: Box<[Metadata]>,
     columns: Box<[ColumnMetadata]>,
@@ -152,19 +187,63 @@ impl TableMetadata {
     }
 }
 
+struct ColumnMetadataType<'a> {
+    name: &'a str,
+    ty: ValueType,
+    default_value: Option<&'a Object>,
+}
+
 // Even though name and type are considered plain metadata, in practice they're always expected to
 // exist, so split them out here for faster access.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct ColumnMetadata {
     pub name: String,
     pub ty: ValueType,
     pub other: Box<[Metadata]>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+impl ColumnMetadata {
+    fn get<'a>(&'a self, key: &str) -> Option<Cow<'a, Object>> {
+        match key {
+            COLUMN_METADATA_NAME => Some(Cow::Owned(Object::String(self.name.clone()))),
+            COLUMN_METADATA_TYPE => Some(Cow::Owned(Object::Binary(Box::new([self.ty as u8])))),
+            _ => self
+                .other
+                .iter()
+                .find(|metadata| metadata.name == key)
+                .map(|metadata| Cow::Borrowed(&metadata.value)),
+        }
+    }
+
+    fn metadata_types(&self) -> impl Iterator<Item = ColumnMetadataType<'_>> + '_ {
+        // Always add in name and type metadata. These will be skipped for columns because they're
+        // not included into `other`.
+        [
+            ColumnMetadataType {
+                name: COLUMN_METADATA_NAME,
+                ty: ValueType::String,
+                default_value: None,
+            },
+            ColumnMetadataType {
+                name: COLUMN_METADATA_TYPE,
+                ty: ValueType::Binary,
+                default_value: None,
+            },
+        ]
+        .into_iter()
+        .chain(self.other.iter().map(|metadata| ColumnMetadataType {
+            name: &metadata.name,
+            ty: metadata.value.value_type(),
+            default_value: metadata.default_value.as_ref(),
+        }))
+    }
+}
+
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Metadata {
     pub name: String,
     pub value: Object,
+    pub default_value: Option<Object>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize)]
@@ -225,7 +304,7 @@ impl TryFrom<u8> for ValueType {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub enum Object {
     Bool(bool),
     BoolArray(Box<[bool]>),
@@ -257,10 +336,29 @@ pub enum Object {
     DecimalArray(Vec<Decimal>),
 }
 
+impl Object {
+    fn value_type(&self) -> ValueType {
+        match self {
+            Self::Bool(_) | Self::BoolArray(_) => ValueType::Bool,
+            Self::Int(_) | Self::IntArray(_) => ValueType::Int,
+            Self::Long(_) | Self::LongArray(_) => ValueType::Long,
+            Self::Float(_) | Self::FloatArray(_) => ValueType::Float,
+            Self::Double(_) | Self::DoubleArray(_) => ValueType::Double,
+            Self::DateTime(_) | Self::DateTimeArray(_) => ValueType::DateTime,
+            Self::Date(_) | Self::DateArray(_) => ValueType::Date,
+            Self::Time(_) | Self::TimeArray(_) => ValueType::Time,
+            Self::TimeSpan(_) | Self::TimeSpanArray(_) => ValueType::TimeSpan,
+            Self::String(_) | Self::StringArray(_) => ValueType::String,
+            Self::Binary(_) | Self::BinaryArray(_) => ValueType::Binary,
+            Self::Decimal(_) | Self::DecimalArray(_) => ValueType::Decimal,
+        }
+    }
+}
+
 /// IEEE754 128-bit decimal.
 pub type Decimal = [u8; 16];
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct TableSlice {
     column_slices: Box<[ColumnSlice]>,
 }
@@ -271,7 +369,7 @@ impl TableSlice {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct ColumnSlice {
     pub values: EncodedValue,
     pub properties: Box<[Property]>,
@@ -309,7 +407,7 @@ impl ColumnSlice {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Property {
     name: String,
     values: EncodedValue,
@@ -336,7 +434,7 @@ impl TryFrom<u8> for ValueArrayEncoding {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub enum EncodedValue {
     Plain {
         value: Object,
