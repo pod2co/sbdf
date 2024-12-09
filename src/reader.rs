@@ -11,8 +11,8 @@ pub struct SbdfReader<'a> {
 }
 
 impl<'a> SbdfReader<'a> {
-    pub fn new(cursor: &'a [u8]) -> Self {
-        let cursor = Cursor::new(cursor);
+    pub fn new(bytes: &'a [u8]) -> Self {
+        let cursor = Cursor::new(bytes);
         SbdfReader { cursor }
     }
 
@@ -20,7 +20,7 @@ impl<'a> SbdfReader<'a> {
         let mut buffer = [0; 1];
         match self.cursor.read_exact(&mut buffer) {
             Ok(()) => Ok(buffer[0]),
-            Err(_) => Err(SbdfError::InvalidByte),
+            Err(_) => Err(SbdfError::InvalidBytes),
         }
     }
 
@@ -70,13 +70,12 @@ impl<'a> SbdfReader<'a> {
         }
     }
 
-    fn read_string(&mut self, size: usize) -> Result<String, SbdfError> {
-        let mut buffer = vec![0; size];
-        self.cursor
-            .read_exact(&mut buffer)
+    fn read_string(&mut self, is_packed_array: bool) -> Result<String, SbdfError> {
+        let bytes = self
+            .read_bytes(is_packed_array)
             .map_err(|_| SbdfError::InvalidString)?;
 
-        Ok(String::from_utf8(buffer).map_err(|_| SbdfError::InvalidString)?)
+        Ok(String::from_utf8(bytes).map_err(|_| SbdfError::InvalidString)?)
     }
 
     fn read_bool(&mut self) -> Result<bool, SbdfError> {
@@ -88,11 +87,17 @@ impl<'a> SbdfReader<'a> {
         }
     }
 
-    fn read_bytes(&mut self, size: usize) -> Result<Vec<u8>, SbdfError> {
-        let mut buffer = vec![0; size];
+    fn read_bytes(&mut self, is_packed_array: bool) -> Result<Vec<u8>, SbdfError> {
+        let length = if is_packed_array {
+            self.read_7bit_packed_int()?
+        } else {
+            self.read_int()?
+        } as usize;
+
+        let mut buffer = vec![0; length];
         match self.cursor.read_exact(&mut buffer) {
             Ok(()) => Ok(buffer),
-            Err(_) => Err(SbdfError::InvalidByte),
+            Err(_) => Err(SbdfError::InvalidBytes),
         }
     }
 
@@ -100,7 +105,7 @@ impl<'a> SbdfReader<'a> {
         let mut buffer = [0; 16];
         match self.cursor.read_exact(&mut buffer) {
             Ok(()) => Ok(buffer),
-            Err(_) => Err(SbdfError::InvalidByte),
+            Err(_) => Err(SbdfError::InvalidBytes),
         }
     }
 
@@ -119,7 +124,7 @@ impl<'a> SbdfReader<'a> {
         self.read_byte()?.try_into()
     }
 
-    fn read_objects(
+    fn read_object(
         &mut self,
         value_type: ValueType,
         count: usize,
@@ -136,24 +141,20 @@ impl<'a> SbdfReader<'a> {
             (ValueType::Time, 1) => Object::Time(self.read_long()?),
             (ValueType::TimeSpan, 1) => Object::TimeSpan(self.read_long()?),
             (ValueType::String, 1) => {
-                let length = if is_packed_array {
+                if is_packed_array {
                     // Ignore byte size.
                     let _ = self.read_int()?;
-                    self.read_7bit_packed_int()?
-                } else {
-                    self.read_int()?
-                } as usize;
-                Object::String(self.read_string(length)?)
+                }
+
+                Object::String(self.read_string(is_packed_array)?)
             }
             (ValueType::Binary, 1) => {
-                let length = if is_packed_array {
+                if is_packed_array {
                     // Ignore byte size.
                     let _ = self.read_int()?;
-                    self.read_7bit_packed_int()?
-                } else {
-                    self.read_int()?
-                } as usize;
-                Object::Binary(self.read_bytes(length)?.into_boxed_slice())
+                }
+
+                Object::Binary(self.read_bytes(is_packed_array)?.into_boxed_slice())
             }
             (ValueType::Decimal, 1) => Object::Decimal(self.read_decimal()?),
             (ValueType::Bool, _) => Object::BoolArray(
@@ -198,16 +199,10 @@ impl<'a> SbdfReader<'a> {
                 if is_packed_array {
                     // Ignore byte size.
                     let _ = self.read_int()?;
+                }
 
-                    for _ in 0..count {
-                        let length = self.read_7bit_packed_int()? as usize;
-                        result.push(self.read_string(length)?);
-                    }
-                } else {
-                    for _ in 0..count {
-                        let length = self.read_int()? as usize;
-                        result.push(self.read_string(length)?);
-                    }
+                for _ in 0..count {
+                    result.push(self.read_string(is_packed_array)?);
                 }
 
                 Object::StringArray(result.into_boxed_slice())
@@ -218,16 +213,10 @@ impl<'a> SbdfReader<'a> {
                 if is_packed_array {
                     // Ignore byte size.
                     let _ = self.read_int()?;
+                }
 
-                    for _ in 0..count {
-                        let length = self.read_7bit_packed_int()? as usize;
-                        result.push(self.read_bytes(length)?.into_boxed_slice());
-                    }
-                } else {
-                    for _ in 0..count {
-                        let length = self.read_int()? as usize;
-                        result.push(self.read_bytes(length)?.into_boxed_slice());
-                    }
+                for _ in 0..count {
+                    result.push(self.read_bytes(is_packed_array)?.into_boxed_slice());
                 }
 
                 Object::BinaryArray(result.into_boxed_slice())
@@ -238,8 +227,8 @@ impl<'a> SbdfReader<'a> {
         })
     }
 
-    fn read_object(&mut self, value_type: ValueType) -> Result<Object, SbdfError> {
-        self.read_objects(value_type, 1, false)
+    fn read_unpacked_object(&mut self, value_type: ValueType) -> Result<Object, SbdfError> {
+        self.read_object(value_type, 1, false)
     }
 
     pub fn read_section_id(&mut self) -> Result<SectionId, SbdfError> {
@@ -279,34 +268,42 @@ impl<'a> SbdfReader<'a> {
         })
     }
 
-    pub fn read_metadata_value(&mut self, value_type: ValueType) -> Result<Object, SbdfError> {
+    pub fn read_metadata_value(
+        &mut self,
+        value_type: ValueType,
+    ) -> Result<Option<Object>, SbdfError> {
         match self.read_byte()? {
-            0 => value_type.default_object(),
-            1 => self.read_object(value_type),
+            0 => Ok(None),
+            1 => Ok(Some(self.read_unpacked_object(value_type)?)),
             _ => Err(SbdfError::MetadataValueArrayLengthMustBeZeroOrOne),
         }
     }
 
     fn read_metadata(&mut self) -> Result<Metadata, SbdfError> {
-        let length = self.read_int()? as usize;
-        let name = self.read_string(length)?;
-
+        let name = self.read_string(false)?;
         let value_type = self.read_value_type()?;
-        let value = self.read_metadata_value(value_type)?;
-        let _default_value = self.read_metadata_value(value_type)?;
+        let value = match self.read_metadata_value(value_type)? {
+            Some(value) => value,
+            None => value_type.default_object()?,
+        };
+        let default_value = self.read_metadata_value(value_type)?;
 
-        Ok(Metadata { name, value })
+        Ok(Metadata {
+            name,
+            value,
+            default_value,
+        })
     }
 
     pub fn read_table_metadata(&mut self) -> Result<TableMetadata, SbdfError> {
-        let count: usize = self
+        let table_metadata_count: usize = self
             .read_int()?
             .try_into()
             .map_err(|_| SbdfError::InvalidSize)?;
 
-        let mut table_metadata = Vec::with_capacity(count);
+        let mut table_metadata = Vec::with_capacity(table_metadata_count);
 
-        for _ in 0..count {
+        for _ in 0..table_metadata_count {
             table_metadata.push(self.read_metadata()?);
         }
 
@@ -317,8 +314,7 @@ impl<'a> SbdfReader<'a> {
         let mut metadata = Vec::with_capacity(metadata_count);
 
         for _ in 0..metadata_count {
-            let length = self.read_int()? as usize;
-            let name = self.read_string(length)?;
+            let name = self.read_string(false)?;
             let value_type = self.read_value_type()?;
             let object = self.read_metadata_value(value_type)?;
             metadata.push((name, value_type, object));
@@ -331,37 +327,40 @@ impl<'a> SbdfReader<'a> {
             let mut column_metadata = Vec::with_capacity(metadata_count.saturating_sub(2));
 
             for j in 0..metadata_count {
-                let has_metadata = self.read_byte()? != 0;
-                if has_metadata {
-                    let (name, ty, _default_value) = &metadata[j];
-                    let value = self.read_object(*ty)?;
+                let has_metadata = self.read_bool()?;
+                if !has_metadata {
+                    continue;
+                }
 
-                    // Add metadata to the current column.
-                    match name.as_str() {
-                        COLUMN_METADATA_NAME => {
-                            maybe_name = match value {
-                                Object::String(name) => Some(name),
-                                _ => return Err(SbdfError::InvalidMetadata),
-                            };
-                        }
-                        COLUMN_METADATA_TYPE => {
-                            maybe_type = match value {
-                                Object::Binary(ty_raw) => {
-                                    if ty_raw.len() != 1 {
-                                        return Err(SbdfError::InvalidMetadata);
-                                    }
+                let (name, ty, default_value) = &metadata[j];
+                let value = self.read_unpacked_object(*ty)?;
 
-                                    Some(ty_raw[0].try_into()?)
+                // Add metadata to the current column.
+                match name.as_str() {
+                    COLUMN_METADATA_NAME => {
+                        maybe_name = match value {
+                            Object::String(name) => Some(name),
+                            _ => return Err(SbdfError::InvalidMetadata),
+                        };
+                    }
+                    COLUMN_METADATA_TYPE => {
+                        maybe_type = match value {
+                            Object::Binary(ty_raw) => {
+                                if ty_raw.len() != 1 {
+                                    return Err(SbdfError::InvalidMetadata);
                                 }
-                                _ => return Err(SbdfError::InvalidMetadata),
+
+                                Some(ty_raw[0].try_into()?)
                             }
+                            _ => return Err(SbdfError::InvalidMetadata),
                         }
-                        _ => {
-                            column_metadata.push(Metadata {
-                                name: name.clone(),
-                                value,
-                            });
-                        }
+                    }
+                    _ => {
+                        column_metadata.push(Metadata {
+                            name: name.clone(),
+                            value,
+                            default_value: default_value.clone(),
+                        });
                     }
                 }
             }
@@ -382,7 +381,7 @@ impl<'a> SbdfReader<'a> {
 
     fn read_object_packed_array(&mut self, value_type: ValueType) -> Result<Object, SbdfError> {
         let count = self.read_int()? as usize;
-        self.read_objects(value_type, count, true)
+        self.read_object(value_type, count, true)
     }
 
     fn read_value_array(&mut self) -> Result<EncodedValue, SbdfError> {
@@ -398,8 +397,7 @@ impl<'a> SbdfReader<'a> {
 
                 // The run lengths are byte arrays, so we can just read them directly instead of
                 // going through the object deserialization process.
-                let run_length_count = self.read_int()? as usize;
-                let run_lengths = self.read_bytes(run_length_count)?;
+                let run_lengths = self.read_bytes(false)?;
 
                 let values = self.read_object_packed_array(value_type)?;
                 EncodedValue::RunLength {
@@ -412,7 +410,11 @@ impl<'a> SbdfReader<'a> {
                 // Round up to the nearest byte.
                 const BITS_PER_BYTE: usize = 8;
                 let byte_length = bit_count.div_ceil(BITS_PER_BYTE);
-                let bytes = self.read_bytes(byte_length)?;
+                let mut bytes = vec![0; byte_length];
+                self.cursor
+                    .read_exact(&mut bytes)
+                    .map_err(|_| SbdfError::InvalidBytes)?;
+
                 EncodedValue::BitArray {
                     bit_count,
                     bytes: bytes.into_boxed_slice(),
@@ -426,8 +428,7 @@ impl<'a> SbdfReader<'a> {
         let mut properties = Vec::with_capacity(count);
 
         for _ in 0..count {
-            let length = self.read_int()? as usize;
-            let name = self.read_string(length)?;
+            let name = self.read_string(false)?;
             let values = self.read_value_array()?;
 
             properties.push(Property { name, values });
@@ -517,10 +518,26 @@ mod tests {
     }
 
     #[test]
-    fn read_string() {
-        let buffer = b"Hello, world!".to_vec();
+    fn read_string_unpacked() {
+        let mut buffer = Vec::new();
+        let text = b"Hello, world!";
+        let length = (text.len() as i32).to_le_bytes();
+        buffer.extend_from_slice(&length);
+        buffer.extend_from_slice(text);
         let mut reader = SbdfReader::new(&buffer);
-        assert_eq!(reader.read_string(buffer.len()).unwrap(), "Hello, world!");
+        assert_eq!(reader.read_string(false).unwrap(), "Hello, world!");
+    }
+
+    #[test]
+    fn read_string_packed() {
+        let mut buffer = Vec::new();
+        let text = b"Hello, world!";
+        // Length is short enough to fit into a single byte without a continuation bit.
+        let length = text.len() as u8;
+        buffer.push(length);
+        buffer.extend_from_slice(text);
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_string(true).unwrap(), "Hello, world!");
     }
 
     #[test]
@@ -532,10 +549,26 @@ mod tests {
     }
 
     #[test]
-    fn read_bytes() {
-        let buffer = b"Hello, world!".to_vec();
+    fn read_bytes_unpacked() {
+        let mut buffer = Vec::new();
+        let text = b"Hello, world!";
+        let length = (text.len() as i32).to_le_bytes();
+        buffer.extend_from_slice(&length);
+        buffer.extend_from_slice(text);
         let mut reader = SbdfReader::new(&buffer);
-        assert_eq!(reader.read_bytes(buffer.len()).unwrap(), buffer);
+        assert_eq!(reader.read_bytes(false).unwrap(), b"Hello, world!");
+    }
+
+    #[test]
+    fn read_bytes_packed() {
+        let mut buffer = Vec::new();
+        let text = b"Hello, world!";
+        // Length is short enough to fit into a single byte without a continuation bit.
+        let length = text.len() as u8;
+        buffer.push(length);
+        buffer.extend_from_slice(text);
+        let mut reader = SbdfReader::new(&buffer);
+        assert_eq!(reader.read_bytes(true).unwrap(), b"Hello, world!");
     }
 
     #[test]

@@ -12,6 +12,7 @@ Sbdf(
       Metadata(
         name: "SbdfTest.TableMetaDecimal",
         value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+        default_value: None,
       ),
     ],
     columns: [],

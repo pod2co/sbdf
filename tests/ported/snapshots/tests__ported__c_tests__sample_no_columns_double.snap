@@ -12,6 +12,7 @@ Sbdf(
       Metadata(
         name: "SbdfTest.TableMetaDouble",
         value: Double(3.14),
+        default_value: None,
       ),
     ],
     columns: [],

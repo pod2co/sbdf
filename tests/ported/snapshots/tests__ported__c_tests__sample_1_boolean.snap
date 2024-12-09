@@ -12,6 +12,7 @@ Sbdf(
       Metadata(
         name: "SbdfTest.TableMetaBoolean",
         value: Bool(true),
+        default_value: None,
       ),
     ],
     columns: [
@@ -22,6 +23,7 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaBoolean0",
             value: Bool(true),
+            default_value: None,
           ),
         ],
       ),

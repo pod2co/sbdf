@@ -12,6 +12,7 @@ Sbdf(
       Metadata(
         name: "SbdfTest.TableMetaInteger",
         value: Int(3),
+        default_value: None,
       ),
     ],
     columns: [
@@ -22,6 +23,7 @@ Sbdf(
           Metadata(
             name: "SbdfTest.ColumnMetaInteger0",
             value: Int(3),
+            default_value: None,
           ),
         ],
       ),

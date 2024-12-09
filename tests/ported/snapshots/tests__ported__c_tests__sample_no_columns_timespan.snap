@@ -12,6 +12,7 @@ Sbdf(
       Metadata(
         name: "SbdfTest.TableMetaTimeSpan",
         value: TimeSpan(12300),
+        default_value: None,
       ),
     ],
     columns: [],

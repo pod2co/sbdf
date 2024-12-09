@@ -12,6 +12,7 @@ Sbdf(
       Metadata(
         name: "SbdfTest.TableMetaFloat",
         value: Float(0.33333334),
+        default_value: None,
       ),
     ],
     columns: [],

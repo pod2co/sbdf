@@ -12,6 +12,7 @@ Sbdf(
       Metadata(
         name: "SbdfTest.TableMetaTime",
         value: Time(33000),
+        default_value: None,
       ),
     ],
     columns: [],

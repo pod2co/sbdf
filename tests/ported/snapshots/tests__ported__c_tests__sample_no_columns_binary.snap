@@ -14,6 +14,7 @@ Sbdf(
         value: Binary([
           1,
         ]),
+        default_value: None,
       ),
     ],
     columns: [],

@@ -12,52 +12,64 @@ Sbdf(
       Metadata(
         name: "SbdfTest.TableMetaBoolean",
         value: Bool(true),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaInteger",
         value: Int(3),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaLong",
         value: Long(2),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaFloat",
         value: Float(0.33333334),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaDouble",
         value: Double(3.14),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaDateTime",
         value: DateTime(49923043200000),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaDate",
         value: Date(49923043200000),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaTime",
         value: Time(33000),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaTimeSpan",
         value: TimeSpan(12300),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaString",
         value: String("The"),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaDecimal",
         value: Decimal((119, 26, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
+        default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaBinary",
         value: Binary([
           1,
         ]),
+        default_value: None,
       ),
     ],
     columns: [],
