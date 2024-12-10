@@ -95,14 +95,16 @@ impl TryFrom<u8> for SectionId {
     }
 }
 
+/// The SBDF file format.
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Sbdf {
-    file_header: FileHeader,
-    table_metadata: TableMetadata,
-    table_slices: Box<[TableSlice]>,
+    pub file_header: FileHeader,
+    pub table_metadata: TableMetadata,
+    pub table_slices: Box<[TableSlice]>,
 }
 
 impl Sbdf {
+    /// Parse an SBDF file from bytes.
     pub fn from_bytes(bytes: &[u8]) -> Result<Sbdf, SbdfError> {
         let mut reader = SbdfReader::new(bytes);
 
@@ -138,6 +140,7 @@ impl Sbdf {
         })
     }
 
+    /// Convert the SBDF file to bytes.
     pub fn to_bytes(&self) -> Result<Vec<u8>, SbdfError> {
         let mut bytes = Vec::new();
         let cursor = Cursor::new(&mut bytes);
@@ -159,22 +162,20 @@ impl Sbdf {
 
         Ok(bytes)
     }
-
-    pub fn table_slices(&self) -> &[TableSlice] {
-        &self.table_slices
-    }
 }
 
+/// The file header contains the version of the file format.
 #[derive(Debug, Eq, PartialEq, Deserialize, Serialize)]
-struct FileHeader {
-    major_version: u8,
-    minor_version: u8,
+pub struct FileHeader {
+    pub major_version: u8,
+    pub minor_version: u8,
 }
 
+/// The table metadata contains the metadata for the table and its columns.
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct TableMetadata {
-    metadata: Box<[Metadata]>,
-    columns: Box<[ColumnMetadata]>,
+    pub metadata: Box<[Metadata]>,
+    pub columns: Box<[ColumnMetadata]>,
 }
 
 impl TableMetadata {
@@ -187,12 +188,13 @@ impl TableMetadata {
     }
 }
 
-struct ColumnMetadataType<'a> {
-    name: &'a str,
-    ty: ValueType,
-    default_value: Option<&'a Object>,
+pub struct ColumnMetadataType<'a> {
+    pub name: &'a str,
+    pub ty: ValueType,
+    pub default_value: Option<&'a Object>,
 }
 
+/// The metadata for a column.
 // Even though name and type are considered plain metadata, in practice they're always expected to
 // exist, so split them out here for faster access.
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
@@ -239,6 +241,7 @@ impl ColumnMetadata {
     }
 }
 
+/// The metadata for a column.
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Metadata {
     pub name: String,
@@ -360,7 +363,7 @@ pub type Decimal = [u8; 16];
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct TableSlice {
-    column_slices: Box<[ColumnSlice]>,
+    pub column_slices: Box<[ColumnSlice]>,
 }
 
 impl TableSlice {
@@ -407,18 +410,19 @@ impl ColumnSlice {
     }
 }
 
+/// A property is a named value associated with a column slice.
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Property {
-    name: String,
-    values: EncodedValue,
+    pub name: String,
+    pub values: EncodedValue,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 #[repr(u8)]
-enum ValueArrayEncoding {
-    Plain = 0x1,
-    RunLength = 0x2,
-    BitArray = 0x3,
+pub enum ValueArrayEncoding {
+    Plain = 1,
+    RunLength = 2,
+    BitArray = 3,
 }
 
 impl TryFrom<u8> for ValueArrayEncoding {
@@ -426,9 +430,9 @@ impl TryFrom<u8> for ValueArrayEncoding {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            0x1 => Ok(Self::Plain),
-            0x2 => Ok(Self::RunLength),
-            0x3 => Ok(Self::BitArray),
+            1 => Ok(Self::Plain),
+            2 => Ok(Self::RunLength),
+            3 => Ok(Self::BitArray),
             _ => Err(SbdfError::InvalidEncoding),
         }
     }
