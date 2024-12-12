@@ -895,113 +895,153 @@ Sbdf(
     TableSlice(
       column_slices: [
         ColumnSlice(
-          values: BitArray(
+          values: BitArray(EncodedBitArray(
             bit_count: 1,
             bytes: [
               0,
             ],
+          )),
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
           ),
-          properties: [],
         ),
         ColumnSlice(
           values: Plain(
             value: Int(69),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
             value: Long(0),
           ),
-          properties: [
-            Property(
-              name: "ErrorCode",
-              values: Plain(
-                value: String("Error 35"),
-              ),
-            ),
-          ],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: Some(Plain(
+              value: String("Error 35"),
+            )),
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
             value: Float(12.0),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
             value: Double(116.18),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
             value: DateTime(49923043200000),
           ),
-          properties: [
-            Property(
-              name: "IsInvalid",
-              values: BitArray(
-                bit_count: 1,
-                bytes: [
-                  128,
-                ],
-              ),
-            ),
-          ],
+          properties: ColumnProperties(
+            is_invalid: Some(EncodedBitArray(
+              bit_count: 1,
+              bytes: [
+                128,
+              ],
+            )),
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
             value: Date(49923129600000),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
             value: Time(1340000),
           ),
-          properties: [
-            Property(
-              name: "HasReplacedValue",
-              values: BitArray(
-                bit_count: 1,
-                bytes: [
-                  128,
-                ],
-              ),
-            ),
-          ],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: Some(EncodedBitArray(
+              bit_count: 1,
+              bytes: [
+                128,
+              ],
+            )),
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
             value: TimeSpan(504300),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
             value: String("The"),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
             value: Decimal((253, 113, 219, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
             value: Binary([]),
           ),
-          properties: [
-            Property(
-              name: "ErrorCode",
-              values: Plain(
-                value: String("Error 44"),
-              ),
-            ),
-          ],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: Some(Plain(
+              value: String("Error 44"),
+            )),
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
       ],
     ),

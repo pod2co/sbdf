@@ -36,7 +36,12 @@ Sbdf(
           values: Plain(
             value: Double(103.62),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
       ],
     ),

@@ -36,7 +36,12 @@ Sbdf(
           values: Plain(
             value: Float(11.0),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
       ],
     ),

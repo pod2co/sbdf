@@ -1,4 +1,4 @@
-use sbdf::{ColumnSlice, EncodedValue, Object, Sbdf};
+use sbdf::{BoolArray, ColumnProperties, ColumnSlice, EncodedBitArray, EncodedValue, Object, Sbdf};
 use std::{fs::File, io::Read};
 
 fn read_file(file_name: &str) -> Sbdf {
@@ -307,7 +307,7 @@ fn loads_values() {
         .iter()
         .map(|table_slice| {
             table_slice
-                .columns()
+                .column_slices
                 .iter()
                 .map(|column| column.load_values().unwrap())
                 .collect::<Vec<_>>()
@@ -319,17 +319,17 @@ fn loads_values() {
 #[test]
 fn decodes_bit_arrays() {
     let test1 = (
-        EncodedValue::BitArray {
+        EncodedValue::BitArray(EncodedBitArray {
             bit_count: 8,
             bytes: vec![38].into_boxed_slice(),
-        },
+        }),
         vec![false, false, true, false, false, true, true, false].into_boxed_slice(),
     );
     let test2 = (
-        EncodedValue::BitArray {
+        EncodedValue::BitArray(EncodedBitArray {
             bit_count: 10,
             bytes: vec![147, 64].into_boxed_slice(),
-        },
+        }),
         vec![
             true, false, false, true, false, false, true, true, false, true,
         ]
@@ -340,13 +340,13 @@ fn decodes_bit_arrays() {
     for (values, expected) in cases {
         let slice = ColumnSlice {
             values,
-            properties: Box::new([]),
+            properties: ColumnProperties::default(),
         };
 
         let result = slice.load_values();
 
         match result.unwrap().as_ref() {
-            Object::BoolArray(ba) => {
+            Object::BoolArray(BoolArray(ba)) => {
                 assert_eq!(ba, &expected);
             }
             _ => panic!("expected bool array"),

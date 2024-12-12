@@ -36,7 +36,12 @@ Sbdf(
           values: Plain(
             value: Date(49923129600000),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
       ],
     ),

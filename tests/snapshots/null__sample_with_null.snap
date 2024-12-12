@@ -1,0 +1,75 @@
+---
+source: tests/null.rs
+expression: sbdf
+---
+Sbdf(
+  file_header: FileHeader(
+    major_version: 1,
+    minor_version: 0,
+  ),
+  table_metadata: TableMetadata(
+    metadata: [],
+    columns: [
+      ColumnMetadata(
+        name: "StringColA",
+        ty: String,
+        other: [],
+      ),
+      ColumnMetadata(
+        name: "DateColB",
+        ty: Date,
+        other: [],
+      ),
+    ],
+  ),
+  table_slices: [
+    TableSlice(
+      column_slices: [
+        ColumnSlice(
+          values: Plain(
+            value: StringArray(StringArray([
+              "",
+              "Abc",
+              "Def",
+              "",
+              "PreviousRowWasNull",
+            ])),
+          ),
+          properties: ColumnProperties(
+            is_invalid: Some(EncodedBitArray(
+              bit_count: 5,
+              bytes: [
+                144,
+              ],
+            )),
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
+        ),
+        ColumnSlice(
+          values: Plain(
+            value: DateArray(DateArray([
+              63839664000000,
+              49923043200000,
+              49923043200000,
+              49923043200000,
+              63871632000000,
+            ])),
+          ),
+          properties: ColumnProperties(
+            is_invalid: Some(EncodedBitArray(
+              bit_count: 5,
+              bytes: [
+                112,
+              ],
+            )),
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
+        ),
+      ],
+    ),
+  ],
+)
