@@ -15,8 +15,8 @@ pub const PROPERTY_HAS_REPLACED_VALUE: &str = "HasReplacedValue";
 
 pub(crate) const BITS_PER_BYTE: usize = 8;
 
-// Specified by Spotfire as a minimum date/time of 1583/01/01 00:00:00
-const MIN_DATE_MILLISECONDS: i64 = 49923043200000i64;
+/// Specified by Spotfire as a minimum date/time of 1583/01/01 00:00:00.
+pub const MIN_DATE_MILLISECONDS: i64 = 49923043200000i64;
 
 #[derive(Error, Debug)]
 pub enum SbdfError {
