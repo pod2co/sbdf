@@ -11,7 +11,7 @@ Sbdf(
     metadata: [
       Metadata(
         name: "SbdfTest.TableMetaDate",
-        value: Date(49923043200000),
+        value: Date(Date(49923043200000)),
         default_value: None,
       ),
     ],
@@ -22,7 +22,7 @@ Sbdf(
         other: [
           Metadata(
             name: "SbdfTest.ColumnMetaDate0",
-            value: Date(49923043200000),
+            value: Date(Date(49923043200000)),
             default_value: None,
           ),
         ],
@@ -34,7 +34,7 @@ Sbdf(
       column_slices: [
         ColumnSlice(
           values: Plain(
-            value: Date(49923129600000),
+            value: Date(Date(49923129600000)),
           ),
           properties: ColumnProperties(
             is_invalid: None,

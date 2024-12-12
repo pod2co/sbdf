@@ -145,8 +145,8 @@ impl<'a> SbdfWriter<'a> {
             Object::Long(l) => self.write_long(*l),
             Object::Float(f) => self.write_float(*f),
             Object::Double(d) => self.write_double(*d),
-            Object::DateTime(dt) => self.write_long(*dt),
-            Object::Date(d) => self.write_long(*d),
+            Object::DateTime(dt) => self.write_long(dt.0),
+            Object::Date(d) => self.write_long(d.0),
             Object::Time(t) => self.write_long(*t),
             Object::TimeSpan(ts) => self.write_long(*ts),
             Object::String(s) => {

@@ -15,6 +15,9 @@ pub const PROPERTY_HAS_REPLACED_VALUE: &str = "HasReplacedValue";
 
 pub(crate) const BITS_PER_BYTE: usize = 8;
 
+// Specified by Spotfire as a minimum date/time of 1583/01/01 00:00:00
+const MIN_DATE_MILLISECONDS: i64 = 49923043200000i64;
+
 #[derive(Error, Debug)]
 pub enum SbdfError {
     #[error("invalid bytes")]
@@ -279,8 +282,8 @@ impl ValueType {
             Self::Long => Ok(Object::Long(0)),
             Self::Float => Ok(Object::Float(0.0)),
             Self::Double => Ok(Object::Double(0.0)),
-            Self::DateTime => Ok(Object::DateTime(0)),
-            Self::Date => Ok(Object::Date(0)),
+            Self::DateTime => Ok(Object::DateTime(DateTime(0))),
+            Self::Date => Ok(Object::Date(Date(0))),
             Self::Time => Ok(Object::Time(0)),
             Self::TimeSpan => Ok(Object::TimeSpan(0)),
             Self::String => Ok(Object::String(String::new())),
@@ -356,9 +359,27 @@ pub struct FloatArray(pub Box<[f32]>);
 #[repr(transparent)]
 pub struct DoubleArray(pub Box<[f64]>);
 
+/// Milliseconds since 01/01/01 00:00:00.
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct DateTime(i64);
+
+impl DateTime {
+    pub const MIN: DateTime = DateTime(MIN_DATE_MILLISECONDS);
+}
+
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[repr(transparent)]
 pub struct DateTimeArray(pub Box<[i64]>);
+
+/// Milliseconds since 01/01/01 00:00:00.
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct Date(i64);
+
+impl Date {
+    pub const MIN: Date = Date(MIN_DATE_MILLISECONDS);
+}
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[repr(transparent)]
@@ -396,13 +417,10 @@ pub enum Object {
     FloatArray(FloatArray),
     Double(f64),
     DoubleArray(DoubleArray),
-    /// Milliseconds since 01/01/01 00:00:00.
-    DateTime(i64),
+    DateTime(DateTime),
     DateTimeArray(DateTimeArray),
-    /// Milliseconds since 01/01/01 00:00:00.
-    Date(i64),
+    Date(Date),
     DateArray(DateArray),
-    /// Milliseconds since 01/01/01 00:00:00.
     Time(i64),
     TimeArray(TimeArray),
     /// Milliseconds.

@@ -1,9 +1,9 @@
 use crate::{
-    BinaryArray, BoolArray, ColumnMetadata, ColumnProperties, ColumnSlice, DateArray,
-    DateTimeArray, Decimal, DecimalArray, DoubleArray, EncodedBitArray, EncodedValue, FileHeader,
-    FloatArray, IntArray, LongArray, Metadata, Object, Property, SbdfError, SectionId, StringArray,
-    TableMetadata, TableSlice, TimeArray, TimeSpanArray, ValueArrayEncoding, ValueType,
-    BITS_PER_BYTE, COLUMN_METADATA_NAME, COLUMN_METADATA_TYPE, PROPERTY_ERROR_CODE,
+    BinaryArray, BoolArray, ColumnMetadata, ColumnProperties, ColumnSlice, Date, DateArray,
+    DateTime, DateTimeArray, Decimal, DecimalArray, DoubleArray, EncodedBitArray, EncodedValue,
+    FileHeader, FloatArray, IntArray, LongArray, Metadata, Object, Property, SbdfError, SectionId,
+    StringArray, TableMetadata, TableSlice, TimeArray, TimeSpanArray, ValueArrayEncoding,
+    ValueType, BITS_PER_BYTE, COLUMN_METADATA_NAME, COLUMN_METADATA_TYPE, PROPERTY_ERROR_CODE,
     PROPERTY_HAS_REPLACED_VALUE, PROPERTY_IS_INVALID,
 };
 use std::io::{Cursor, Read};
@@ -139,8 +139,8 @@ impl<'a> SbdfReader<'a> {
             (ValueType::Long, 1) => Object::Long(self.read_long()?),
             (ValueType::Float, 1) => Object::Float(self.read_float()?),
             (ValueType::Double, 1) => Object::Double(self.read_double()?),
-            (ValueType::DateTime, 1) => Object::DateTime(self.read_long()?),
-            (ValueType::Date, 1) => Object::Date(self.read_long()?),
+            (ValueType::DateTime, 1) => Object::DateTime(DateTime(self.read_long()?)),
+            (ValueType::Date, 1) => Object::Date(Date(self.read_long()?)),
             (ValueType::Time, 1) => Object::Time(self.read_long()?),
             (ValueType::TimeSpan, 1) => Object::TimeSpan(self.read_long()?),
             (ValueType::String, 1) => {
