@@ -7,8 +7,13 @@ use writer::SbdfWriter;
 pub(crate) mod reader;
 pub(crate) mod writer;
 
-const COLUMN_METADATA_NAME: &'static str = "Name";
-const COLUMN_METADATA_TYPE: &'static str = "DataType";
+pub const COLUMN_METADATA_NAME: &str = "Name";
+pub const COLUMN_METADATA_TYPE: &str = "DataType";
+pub const PROPERTY_IS_INVALID: &str = "IsInvalid";
+pub const PROPERTY_ERROR_CODE: &str = "ErrorCode";
+pub const PROPERTY_HAS_REPLACED_VALUE: &str = "HasReplacedValue";
+
+pub(crate) const BITS_PER_BYTE: usize = 8;
 
 #[derive(Error, Debug)]
 pub enum SbdfError {
@@ -308,35 +313,107 @@ impl TryFrom<u8> for ValueType {
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct BoolArray(pub Box<[bool]>);
+
+impl BoolArray {
+    pub fn encode_to_bit_array(&self) -> EncodedBitArray {
+        let mut bytes = Vec::with_capacity(self.0.len().div_ceil(BITS_PER_BYTE));
+
+        // Write the bits in the most significant bit first.
+        for chunk in self.0.chunks(BITS_PER_BYTE) {
+            let mut byte = 0;
+
+            for (i, &bit) in chunk.iter().enumerate() {
+                if bit {
+                    byte |= 0x80 >> i;
+                }
+            }
+
+            bytes.push(byte);
+        }
+
+        EncodedBitArray {
+            bit_count: self.0.len(),
+            bytes: bytes.into_boxed_slice(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct IntArray(pub Box<[i32]>);
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct LongArray(pub Box<[i64]>);
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct FloatArray(pub Box<[f32]>);
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct DoubleArray(pub Box<[f64]>);
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct DateTimeArray(pub Box<[i64]>);
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct DateArray(pub Box<[i64]>);
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct TimeArray(pub Box<[i64]>);
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct TimeSpanArray(pub Box<[i64]>);
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct BinaryArray(pub Box<[Box<[u8]>]>);
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct StringArray(pub Box<[String]>);
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[repr(transparent)]
+pub struct DecimalArray(pub Box<[Decimal]>);
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub enum Object {
     Bool(bool),
-    BoolArray(Box<[bool]>),
+    BoolArray(BoolArray),
     Int(i32),
-    IntArray(Box<[i32]>),
+    IntArray(IntArray),
     Long(i64),
-    LongArray(Box<[i64]>),
+    LongArray(LongArray),
     Float(f32),
-    FloatArray(Box<[f32]>),
+    FloatArray(FloatArray),
     Double(f64),
-    DoubleArray(Box<[f64]>),
+    DoubleArray(DoubleArray),
     /// Milliseconds since 01/01/01 00:00:00.
     DateTime(i64),
-    DateTimeArray(Box<[i64]>),
+    DateTimeArray(DateTimeArray),
     /// Milliseconds since 01/01/01 00:00:00.
     Date(i64),
-    DateArray(Box<[i64]>),
+    DateArray(DateArray),
     /// Milliseconds since 01/01/01 00:00:00.
     Time(i64),
-    TimeArray(Box<[i64]>),
+    TimeArray(TimeArray),
     /// Milliseconds.
     TimeSpan(i64),
-    TimeSpanArray(Box<[i64]>),
+    TimeSpanArray(TimeSpanArray),
     String(String),
-    StringArray(Box<[String]>),
+    StringArray(StringArray),
     Binary(Box<[u8]>),
-    BinaryArray(Box<[Box<[u8]>]>),
+    BinaryArray(BinaryArray),
     Decimal(Decimal),
-    DecimalArray(Box<[Decimal]>),
+    DecimalArray(DecimalArray),
 }
 
 impl Object {
@@ -366,47 +443,26 @@ pub struct TableSlice {
     pub column_slices: Box<[ColumnSlice]>,
 }
 
-impl TableSlice {
-    pub fn columns(&self) -> &[ColumnSlice] {
-        &self.column_slices
-    }
+#[derive(Debug, Default, PartialEq, Deserialize, Serialize)]
+pub struct ColumnProperties {
+    /// The standard "IsInvalid" property used to mark invalid or null values.
+    pub is_invalid: Option<EncodedBitArray>,
+    /// The standard "ErrorCode" property.
+    pub error_code: Option<EncodedValue>,
+    /// The standard "HasReplacedValue" property.
+    pub has_replaced_value: Option<EncodedBitArray>,
+    pub other: Box<[Property]>,
 }
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct ColumnSlice {
     pub values: EncodedValue,
-    pub properties: Box<[Property]>,
+    pub properties: ColumnProperties,
 }
 
 impl ColumnSlice {
     pub fn load_values<'a>(&'a self) -> Result<Cow<'a, Object>, SbdfError> {
-        match &self.values {
-            EncodedValue::Plain { value } => {
-                // Already unpacked, so just return a borrowed reference.
-                Ok(Cow::Borrowed(value))
-            }
-            EncodedValue::RunLength { .. } => {
-                // TODO: It seems like these should all be array types, but it's not clear where
-                // that's enforced right now.
-                unimplemented!("run length loading")
-            }
-            EncodedValue::BitArray { bit_count, bytes } => {
-                let mut values = Vec::with_capacity(bytes.len() * size_of::<u8>());
-
-                for byte in bytes.iter() {
-                    for i in 0..8 {
-                        // Read the most significant bit first.
-                        let bit = (byte << i) & 0x80;
-                        values.push(bit != 0);
-                    }
-                }
-
-                // Trim the values to the actual bit count.
-                values.truncate(*bit_count);
-
-                Ok(Cow::Owned(Object::BoolArray(values.into_boxed_slice())))
-            }
-        }
+        self.values.decode()
     }
 }
 
@@ -447,8 +503,71 @@ pub enum EncodedValue {
         run_lengths: Box<[u8]>,
         values: Object,
     },
-    BitArray {
-        bit_count: usize,
-        bytes: Box<[u8]>,
-    },
+    BitArray(EncodedBitArray),
+}
+
+impl EncodedValue {
+    pub fn decode(&self) -> Result<Cow<'_, Object>, SbdfError> {
+        match self {
+            EncodedValue::Plain { value } => {
+                // Already unpacked, so just return a borrowed reference.
+                Ok(Cow::Borrowed(value))
+            }
+            EncodedValue::RunLength { .. } => {
+                // TODO: It seems like these should all be array types, but it's not clear where
+                // that's enforced right now.
+                unimplemented!("run length loading")
+            }
+            EncodedValue::BitArray(bit_array) => {
+                Ok(Cow::Owned(Object::BoolArray(bit_array.decode()?)))
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+pub struct EncodedBitArray {
+    pub bit_count: usize,
+    pub bytes: Box<[u8]>,
+}
+
+impl EncodedBitArray {
+    pub fn decode(&self) -> Result<BoolArray, SbdfError> {
+        let EncodedBitArray { bit_count, bytes } = self;
+
+        let mut values = Vec::with_capacity(bytes.len() * size_of::<u8>());
+
+        for byte in bytes.iter() {
+            for i in 0..8 {
+                // Read the most significant bit first.
+                let bit = (byte << i) & 0x80;
+                values.push(bit != 0);
+            }
+        }
+
+        // Trim the values to the actual bit count.
+        values.truncate(*bit_count);
+
+        Ok(BoolArray(values.into_boxed_slice()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn roundtrip_bool_to_bit_array() {
+        let bool_array = BoolArray(
+            vec![
+                false, false, true, false, false, true, true, false, true, false, false, false,
+                true, false, true, false, false, true, true,
+            ]
+            .into_boxed_slice(),
+        );
+        let bit_array = bool_array.encode_to_bit_array();
+        let decoded = bit_array.decode().unwrap();
+
+        assert_eq!(decoded, bool_array);
+    }
 }

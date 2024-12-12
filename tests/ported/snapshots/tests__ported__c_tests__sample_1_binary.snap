@@ -44,7 +44,12 @@ Sbdf(
               35,
             ]),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
       ],
     ),

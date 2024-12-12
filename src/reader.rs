@@ -1,7 +1,10 @@
 use crate::{
-    ColumnMetadata, ColumnSlice, Decimal, EncodedValue, FileHeader, Metadata, Object, Property,
-    SbdfError, SectionId, TableMetadata, TableSlice, ValueArrayEncoding, ValueType,
-    COLUMN_METADATA_NAME, COLUMN_METADATA_TYPE,
+    BinaryArray, BoolArray, ColumnMetadata, ColumnProperties, ColumnSlice, DateArray,
+    DateTimeArray, Decimal, DecimalArray, DoubleArray, EncodedBitArray, EncodedValue, FileHeader,
+    FloatArray, IntArray, LongArray, Metadata, Object, Property, SbdfError, SectionId, StringArray,
+    TableMetadata, TableSlice, TimeArray, TimeSpanArray, ValueArrayEncoding, ValueType,
+    BITS_PER_BYTE, COLUMN_METADATA_NAME, COLUMN_METADATA_TYPE, PROPERTY_ERROR_CODE,
+    PROPERTY_HAS_REPLACED_VALUE, PROPERTY_IS_INVALID,
 };
 use std::io::{Cursor, Read};
 
@@ -157,43 +160,43 @@ impl<'a> SbdfReader<'a> {
                 Object::Binary(self.read_bytes(is_packed_array)?.into_boxed_slice())
             }
             (ValueType::Decimal, 1) => Object::Decimal(self.read_decimal()?),
-            (ValueType::Bool, _) => Object::BoolArray(
+            (ValueType::Bool, _) => Object::BoolArray(BoolArray(
                 self.read_multiple(count, SbdfReader::read_bool)?
                     .into_boxed_slice(),
-            ),
-            (ValueType::Int, _) => Object::IntArray(
+            )),
+            (ValueType::Int, _) => Object::IntArray(IntArray(
                 self.read_multiple(count, SbdfReader::read_int)?
                     .into_boxed_slice(),
-            ),
-            (ValueType::Long, _) => Object::LongArray(
+            )),
+            (ValueType::Long, _) => Object::LongArray(LongArray(
                 self.read_multiple(count, |reader| reader.read_long())
                     .map_err(|_| SbdfError::InvalidObject)?
                     .into_boxed_slice(),
-            ),
-            (ValueType::Float, _) => Object::FloatArray(
+            )),
+            (ValueType::Float, _) => Object::FloatArray(FloatArray(
                 self.read_multiple(count, SbdfReader::read_float)?
                     .into_boxed_slice(),
-            ),
-            (ValueType::Double, _) => Object::DoubleArray(
+            )),
+            (ValueType::Double, _) => Object::DoubleArray(DoubleArray(
                 self.read_multiple(count, SbdfReader::read_double)?
                     .into_boxed_slice(),
-            ),
-            (ValueType::DateTime, _) => Object::DateTimeArray(
+            )),
+            (ValueType::DateTime, _) => Object::DateTimeArray(DateTimeArray(
                 self.read_multiple(count, SbdfReader::read_long)?
                     .into_boxed_slice(),
-            ),
-            (ValueType::Date, _) => Object::DateArray(
+            )),
+            (ValueType::Date, _) => Object::DateArray(DateArray(
                 self.read_multiple(count, SbdfReader::read_long)?
                     .into_boxed_slice(),
-            ),
-            (ValueType::Time, _) => Object::TimeArray(
+            )),
+            (ValueType::Time, _) => Object::TimeArray(TimeArray(
                 self.read_multiple(count, SbdfReader::read_long)?
                     .into_boxed_slice(),
-            ),
-            (ValueType::TimeSpan, _) => Object::TimeSpanArray(
+            )),
+            (ValueType::TimeSpan, _) => Object::TimeSpanArray(TimeSpanArray(
                 self.read_multiple(count, SbdfReader::read_long)?
                     .into_boxed_slice(),
-            ),
+            )),
             (ValueType::String, _) => {
                 let mut result = Vec::with_capacity(count);
 
@@ -206,7 +209,7 @@ impl<'a> SbdfReader<'a> {
                     result.push(self.read_string(is_packed_array)?);
                 }
 
-                Object::StringArray(result.into_boxed_slice())
+                Object::StringArray(StringArray(result.into_boxed_slice()))
             }
             (ValueType::Binary, _) => {
                 let mut result = Vec::with_capacity(count);
@@ -220,12 +223,12 @@ impl<'a> SbdfReader<'a> {
                     result.push(self.read_bytes(is_packed_array)?.into_boxed_slice());
                 }
 
-                Object::BinaryArray(result.into_boxed_slice())
+                Object::BinaryArray(BinaryArray(result.into_boxed_slice()))
             }
-            (ValueType::Decimal, _) => Object::DecimalArray(
+            (ValueType::Decimal, _) => Object::DecimalArray(DecimalArray(
                 self.read_multiple(count, SbdfReader::read_decimal)?
                     .into_boxed_slice(),
-            ),
+            )),
         })
     }
 
@@ -410,33 +413,53 @@ impl<'a> SbdfReader<'a> {
             ValueArrayEncoding::BitArray => {
                 let bit_count = self.read_int()? as usize;
                 // Round up to the nearest byte.
-                const BITS_PER_BYTE: usize = 8;
                 let byte_length = bit_count.div_ceil(BITS_PER_BYTE);
                 let mut bytes = vec![0; byte_length];
                 self.cursor
                     .read_exact(&mut bytes)
                     .map_err(|_| SbdfError::InvalidBytes)?;
 
-                EncodedValue::BitArray {
+                EncodedValue::BitArray(EncodedBitArray {
                     bit_count,
                     bytes: bytes.into_boxed_slice(),
-                }
+                })
             }
         })
     }
 
-    fn read_properties(&mut self) -> Result<Box<[Property]>, SbdfError> {
+    fn read_properties(&mut self) -> Result<ColumnProperties, SbdfError> {
         let count = self.read_int()? as usize;
         let mut properties = Vec::with_capacity(count);
+
+        let mut is_invalid = None;
+        let mut error_code = None;
+        let mut has_replaced_value = None;
 
         for _ in 0..count {
             let name = self.read_string(false)?;
             let values = self.read_value_array()?;
 
-            properties.push(Property { name, values });
+            // Try to recognize standard properties when the names and types match.
+            match (name.as_str(), values) {
+                (PROPERTY_IS_INVALID, EncodedValue::BitArray(bit_array)) => {
+                    is_invalid = Some(bit_array);
+                }
+                (PROPERTY_ERROR_CODE, encoded) => {
+                    error_code = Some(encoded);
+                }
+                (PROPERTY_HAS_REPLACED_VALUE, EncodedValue::BitArray(bit_array)) => {
+                    has_replaced_value = Some(bit_array);
+                }
+                (_, values) => properties.push(Property { name, values }),
+            }
         }
 
-        Ok(properties.into_boxed_slice())
+        Ok(ColumnProperties {
+            is_invalid,
+            error_code,
+            has_replaced_value,
+            other: properties.into_boxed_slice(),
+        })
     }
 
     fn read_column_slice(&mut self) -> Result<ColumnSlice, SbdfError> {

@@ -37,59 +37,69 @@ Sbdf(
       column_slices: [
         ColumnSlice(
           values: Plain(
-            value: IntArray([
+            value: IntArray(IntArray([
               1,
               2,
-            ]),
+            ])),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
-            value: StringArray([
+            value: StringArray(StringArray([
               "Foo",
               "Fie",
-            ]),
+            ])),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
-            value: DoubleArray([
+            value: DoubleArray(DoubleArray([
               3.5,
               100.0,
-            ]),
+            ])),
           ),
-          properties: [
-            Property(
-              name: "HasReplacedValue",
-              values: BitArray(
-                bit_count: 2,
-                bytes: [
-                  128,
-                ],
-              ),
-            ),
-          ],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: Some(EncodedBitArray(
+              bit_count: 2,
+              bytes: [
+                128,
+              ],
+            )),
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
-            value: DateArray([
+            value: DateArray(DateArray([
               12345,
               0,
-            ]),
+            ])),
           ),
-          properties: [
-            Property(
-              name: "ErrorCode",
-              values: Plain(
-                value: StringArray([
-                  "",
-                  "illegal value",
-                ]),
-              ),
-            ),
-          ],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: Some(Plain(
+              value: StringArray(StringArray([
+                "",
+                "illegal value",
+              ])),
+            )),
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
       ],
     ),

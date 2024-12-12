@@ -1,8 +1,10 @@
 use std::io::Cursor;
 
 use crate::{
-    ColumnMetadataType, ColumnSlice, Decimal, EncodedValue, FileHeader, Metadata, Object, Property,
-    SbdfError, SectionId, TableMetadata, TableSlice, ValueArrayEncoding, ValueType,
+    BinaryArray, BoolArray, ColumnMetadataType, ColumnProperties, ColumnSlice, DateArray,
+    DateTimeArray, Decimal, DecimalArray, DoubleArray, EncodedBitArray, EncodedValue, FileHeader,
+    FloatArray, IntArray, LongArray, Metadata, Object, SbdfError, SectionId, StringArray,
+    TableMetadata, TableSlice, TimeArray, TimeSpanArray, ValueArrayEncoding, ValueType,
 };
 
 fn bytes_needed_for_7bit_packed_int(value: i32) -> i32 {
@@ -181,16 +183,22 @@ impl<'a> SbdfWriter<'a> {
                 self.write_bytes(b, is_packed_array)
             }
             Object::Decimal(d) => self.write_decimal(d),
-            Object::BoolArray(a) => self.write_multiple(a, |w, ts| w.write_bool(*ts)),
-            Object::IntArray(a) => self.write_multiple(a, |w, ts| w.write_int(*ts)),
-            Object::LongArray(a) => self.write_multiple(a, |w, ts| w.write_long(*ts)),
-            Object::FloatArray(a) => self.write_multiple(a, |w, ts| w.write_float(*ts)),
-            Object::DoubleArray(a) => self.write_multiple(a, |w, ts| w.write_double(*ts)),
-            Object::DateTimeArray(a) => self.write_multiple(a, |w, ts| w.write_long(*ts)),
-            Object::DateArray(a) => self.write_multiple(a, |w, ts| w.write_long(*ts)),
-            Object::TimeArray(a) => self.write_multiple(a, |w, ts| w.write_long(*ts)),
-            Object::TimeSpanArray(vec) => self.write_multiple(vec, |w, ts| w.write_long(*ts)),
-            Object::StringArray(a) => {
+            Object::BoolArray(BoolArray(a)) => self.write_multiple(a, |w, ts| w.write_bool(*ts)),
+            Object::IntArray(IntArray(a)) => self.write_multiple(a, |w, ts| w.write_int(*ts)),
+            Object::LongArray(LongArray(a)) => self.write_multiple(a, |w, ts| w.write_long(*ts)),
+            Object::FloatArray(FloatArray(a)) => self.write_multiple(a, |w, ts| w.write_float(*ts)),
+            Object::DoubleArray(DoubleArray(a)) => {
+                self.write_multiple(a, |w, ts| w.write_double(*ts))
+            }
+            Object::DateTimeArray(DateTimeArray(a)) => {
+                self.write_multiple(a, |w, ts| w.write_long(*ts))
+            }
+            Object::DateArray(DateArray(a)) => self.write_multiple(a, |w, ts| w.write_long(*ts)),
+            Object::TimeArray(TimeArray(a)) => self.write_multiple(a, |w, ts| w.write_long(*ts)),
+            Object::TimeSpanArray(TimeSpanArray(a)) => {
+                self.write_multiple(a, |w, ts| w.write_long(*ts))
+            }
+            Object::StringArray(StringArray(a)) => {
                 if is_packed_array {
                     // Write the byte size of the string array, even though it won't be used by readers.
                     let mut total_byte_size = 0i32;
@@ -218,7 +226,7 @@ impl<'a> SbdfWriter<'a> {
 
                 Ok(())
             }
-            Object::BinaryArray(a) => {
+            Object::BinaryArray(BinaryArray(a)) => {
                 if is_packed_array {
                     // Write the byte size of the binary array, even though it won't be used by readers.
                     let mut total_byte_size = 0i32;
@@ -243,7 +251,9 @@ impl<'a> SbdfWriter<'a> {
 
                 Ok(())
             }
-            Object::DecimalArray(vec) => self.write_multiple(vec, SbdfWriter::write_decimal),
+            Object::DecimalArray(DecimalArray(a)) => {
+                self.write_multiple(a, SbdfWriter::write_decimal)
+            }
         }
     }
 
@@ -384,18 +394,18 @@ impl<'a> SbdfWriter<'a> {
             | Object::String(_)
             | Object::Binary(_)
             | Object::Decimal(_) => 1usize,
-            Object::BoolArray(a) => a.len(),
-            Object::IntArray(a) => a.len(),
-            Object::LongArray(a) => a.len(),
-            Object::FloatArray(a) => a.len(),
-            Object::DoubleArray(a) => a.len(),
-            Object::DateTimeArray(a) => a.len(),
-            Object::DateArray(a) => a.len(),
-            Object::TimeArray(a) => a.len(),
-            Object::TimeSpanArray(a) => a.len(),
-            Object::StringArray(a) => a.len(),
-            Object::BinaryArray(a) => a.len(),
-            Object::DecimalArray(a) => a.len(),
+            Object::BoolArray(BoolArray(a)) => a.len(),
+            Object::IntArray(IntArray(a)) => a.len(),
+            Object::LongArray(LongArray(a)) => a.len(),
+            Object::FloatArray(FloatArray(a)) => a.len(),
+            Object::DoubleArray(DoubleArray(a)) => a.len(),
+            Object::DateTimeArray(DateTimeArray(a)) => a.len(),
+            Object::DateArray(DateArray(a)) => a.len(),
+            Object::TimeArray(TimeArray(a)) => a.len(),
+            Object::TimeSpanArray(TimeSpanArray(a)) => a.len(),
+            Object::StringArray(StringArray(a)) => a.len(),
+            Object::BinaryArray(BinaryArray(a)) => a.len(),
+            Object::DecimalArray(DecimalArray(a)) => a.len(),
         }
         .try_into()
         .map_err(|_| SbdfError::TooManyValuesInArray)?;
@@ -404,41 +414,73 @@ impl<'a> SbdfWriter<'a> {
         self.write_object(value, true)
     }
 
+    fn write_encoded_plain(&mut self, value: &Object) -> Result<(), SbdfError> {
+        self.write_byte(ValueArrayEncoding::Plain as u8)?;
+        self.write_value_type(value.value_type())?;
+        self.write_object_packed_array(value)?;
+
+        Ok(())
+    }
+
+    fn write_encoded_bit_array(&mut self, bit_array: &EncodedBitArray) -> Result<(), SbdfError> {
+        self.write_byte(ValueArrayEncoding::BitArray as u8)?;
+        self.write_value_type(ValueType::Bool)?;
+        let bit_count: i32 = (bit_array.bit_count)
+            .try_into()
+            .map_err(|_| SbdfError::BytesTooLong)?;
+        self.write_int(bit_count)?;
+        self.write_bytes_without_length(&bit_array.bytes)?;
+
+        Ok(())
+    }
+
     fn write_value_array(&mut self, values: &EncodedValue) -> Result<(), SbdfError> {
         match values {
-            EncodedValue::Plain { value } => {
-                self.write_byte(ValueArrayEncoding::Plain as u8)?;
-                self.write_value_type(value.value_type())?;
-                self.write_object_packed_array(value)?;
-
-                Ok(())
-            }
+            EncodedValue::Plain { value } => self.write_encoded_plain(value),
             EncodedValue::RunLength { .. } => {
                 self.write_byte(ValueArrayEncoding::RunLength as u8)?;
                 todo!()
             }
-            EncodedValue::BitArray { bit_count, bytes } => {
-                self.write_byte(ValueArrayEncoding::BitArray as u8)?;
-                self.write_value_type(ValueType::Bool)?;
-                let bit_count: i32 = (*bit_count)
-                    .try_into()
-                    .map_err(|_| SbdfError::BytesTooLong)?;
-                self.write_int(bit_count)?;
-                self.write_bytes_without_length(bytes)?;
-
-                Ok(())
-            }
+            EncodedValue::BitArray(bit_array) => self.write_encoded_bit_array(bit_array),
         }
     }
 
-    fn write_properties(&mut self, properties: &[Property]) -> Result<(), SbdfError> {
-        let count: i32 = properties
-            .len()
-            .try_into()
-            .map_err(|_| SbdfError::TooManyProperties)?;
+    fn write_properties(&mut self, properties: &ColumnProperties) -> Result<(), SbdfError> {
+        let mut count = 0;
+
+        if properties.is_invalid.is_some() {
+            count += 1;
+        }
+
+        if properties.error_code.is_some() {
+            count += 1;
+        }
+
+        if properties.has_replaced_value.is_some() {
+            count += 1;
+        }
+
+        count += properties.other.len();
+
+        let count: i32 = count.try_into().map_err(|_| SbdfError::TooManyProperties)?;
         self.write_int(count)?;
 
-        for property in properties.iter() {
+        if let Some(bit_array) = &properties.is_invalid {
+            self.write_string("IsInvalid", false)?;
+            self.write_encoded_bit_array(bit_array)?;
+        }
+
+        if let Some(object) = &properties.error_code {
+            self.write_string("ErrorCode", false)?;
+            self.write_value_array(object)?;
+        }
+
+        if let Some(bit_array) = &properties.has_replaced_value {
+            self.write_string("HasReplacedValue", false)?;
+            self.write_encoded_bit_array(bit_array)?;
+        }
+
+        for property in properties.other.iter() {
             self.write_string(&property.name, false)?;
             self.write_value_array(&property.values)?;
         }

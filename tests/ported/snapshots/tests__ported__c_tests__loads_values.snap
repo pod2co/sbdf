@@ -32,63 +32,73 @@ expression: "(&sbdf, all_values)"
       column_slices: [
         ColumnSlice(
           values: Plain(
-            value: IntArray([
+            value: IntArray(IntArray([
               1,
               2,
               0,
-            ]),
+            ])),
           ),
-          properties: [
-            Property(
-              name: "IsInvalid",
-              values: BitArray(
-                bit_count: 3,
-                bytes: [
-                  32,
-                ],
-              ),
-            ),
-          ],
+          properties: ColumnProperties(
+            is_invalid: Some(EncodedBitArray(
+              bit_count: 3,
+              bytes: [
+                32,
+              ],
+            )),
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
-            value: StringArray([
+            value: StringArray(StringArray([
               "Foo",
               "Fie",
               "Fum",
-            ]),
+            ])),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
         ColumnSlice(
           values: Plain(
-            value: DoubleArray([
+            value: DoubleArray(DoubleArray([
               3.5,
               100.0,
               NaN,
-            ]),
+            ])),
           ),
-          properties: [],
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
+          ),
         ),
       ],
     ),
   ],
 ), [
   [
-    IntArray([
+    IntArray(IntArray([
       1,
       2,
       0,
-    ]),
-    StringArray([
+    ])),
+    StringArray(StringArray([
       "Foo",
       "Fie",
       "Fum",
-    ]),
-    DoubleArray([
+    ])),
+    DoubleArray(DoubleArray([
       3.5,
       100.0,
       NaN,
-    ]),
+    ])),
   ],
 ])

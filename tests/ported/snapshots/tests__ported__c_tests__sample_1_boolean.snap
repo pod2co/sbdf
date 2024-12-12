@@ -33,13 +33,18 @@ Sbdf(
     TableSlice(
       column_slices: [
         ColumnSlice(
-          values: BitArray(
+          values: BitArray(EncodedBitArray(
             bit_count: 1,
             bytes: [
               0,
             ],
+          )),
+          properties: ColumnProperties(
+            is_invalid: None,
+            error_code: None,
+            has_replaced_value: None,
+            other: [],
           ),
-          properties: [],
         ),
       ],
     ),
