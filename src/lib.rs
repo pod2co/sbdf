@@ -330,13 +330,13 @@ pub enum Object {
     TimeArray(Box<[i64]>),
     /// Milliseconds.
     TimeSpan(i64),
-    TimeSpanArray(Vec<i64>),
+    TimeSpanArray(Box<[i64]>),
     String(String),
     StringArray(Box<[String]>),
     Binary(Box<[u8]>),
     BinaryArray(Box<[Box<[u8]>]>),
     Decimal(Decimal),
-    DecimalArray(Vec<Decimal>),
+    DecimalArray(Box<[Decimal]>),
 }
 
 impl Object {

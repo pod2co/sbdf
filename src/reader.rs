@@ -190,9 +190,10 @@ impl<'a> SbdfReader<'a> {
                 self.read_multiple(count, SbdfReader::read_long)?
                     .into_boxed_slice(),
             ),
-            (ValueType::TimeSpan, _) => {
-                Object::TimeSpanArray(self.read_multiple(count, SbdfReader::read_long)?)
-            }
+            (ValueType::TimeSpan, _) => Object::TimeSpanArray(
+                self.read_multiple(count, SbdfReader::read_long)?
+                    .into_boxed_slice(),
+            ),
             (ValueType::String, _) => {
                 let mut result = Vec::with_capacity(count);
 
@@ -221,9 +222,10 @@ impl<'a> SbdfReader<'a> {
 
                 Object::BinaryArray(result.into_boxed_slice())
             }
-            (ValueType::Decimal, _) => {
-                Object::DecimalArray(self.read_multiple(count, SbdfReader::read_decimal)?)
-            }
+            (ValueType::Decimal, _) => Object::DecimalArray(
+                self.read_multiple(count, SbdfReader::read_decimal)?
+                    .into_boxed_slice(),
+            ),
         })
     }
 
