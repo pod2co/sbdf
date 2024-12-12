@@ -11,7 +11,7 @@ Sbdf(
     metadata: [
       Metadata(
         name: "SbdfTest.TableMetaDate",
-        value: Date(49923043200000),
+        value: Date(Date(49923043200000)),
         default_value: None,
       ),
     ],

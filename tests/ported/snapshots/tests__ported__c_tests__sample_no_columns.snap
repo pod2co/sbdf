@@ -36,12 +36,12 @@ Sbdf(
       ),
       Metadata(
         name: "SbdfTest.TableMetaDateTime",
-        value: DateTime(49923043200000),
+        value: DateTime(DateTime(49923043200000)),
         default_value: None,
       ),
       Metadata(
         name: "SbdfTest.TableMetaDate",
-        value: Date(49923043200000),
+        value: Date(Date(49923043200000)),
         default_value: None,
       ),
       Metadata(
