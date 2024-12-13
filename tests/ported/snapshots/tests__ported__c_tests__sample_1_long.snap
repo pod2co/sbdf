@@ -33,9 +33,7 @@ Sbdf(
     TableSlice(
       column_slices: [
         ColumnSlice(
-          values: Plain(
-            value: Long(66),
-          ),
+          values: Plain(Long(66)),
           properties: ColumnProperties(
             is_invalid: None,
             error_code: None,

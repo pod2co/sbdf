@@ -26,15 +26,13 @@ Sbdf(
     TableSlice(
       column_slices: [
         ColumnSlice(
-          values: Plain(
-            value: StringArray(StringArray([
-              "",
-              "Abc",
-              "Def",
-              "",
-              "PreviousRowWasNull",
-            ])),
-          ),
+          values: Plain(StringArray(StringArray([
+            "",
+            "Abc",
+            "Def",
+            "",
+            "PreviousRowWasNull",
+          ]))),
           properties: ColumnProperties(
             is_invalid: Some(EncodedBitArray(
               bit_count: 5,
@@ -48,15 +46,13 @@ Sbdf(
           ),
         ),
         ColumnSlice(
-          values: Plain(
-            value: DateArray(DateArray([
-              63839664000000,
-              49923043200000,
-              49923043200000,
-              49923043200000,
-              63871632000000,
-            ])),
-          ),
+          values: Plain(DateArray(DateArray([
+            63839664000000,
+            49923043200000,
+            49923043200000,
+            49923043200000,
+            63871632000000,
+          ]))),
           properties: ColumnProperties(
             is_invalid: Some(EncodedBitArray(
               bit_count: 5,

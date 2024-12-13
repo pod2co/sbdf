@@ -36,12 +36,10 @@ Sbdf(
     TableSlice(
       column_slices: [
         ColumnSlice(
-          values: Plain(
-            value: IntArray(IntArray([
-              1,
-              2,
-            ])),
-          ),
+          values: Plain(IntArray(IntArray([
+            1,
+            2,
+          ]))),
           properties: ColumnProperties(
             is_invalid: None,
             error_code: None,
@@ -50,12 +48,10 @@ Sbdf(
           ),
         ),
         ColumnSlice(
-          values: Plain(
-            value: StringArray(StringArray([
-              "Foo",
-              "Fie",
-            ])),
-          ),
+          values: Plain(StringArray(StringArray([
+            "Foo",
+            "Fie",
+          ]))),
           properties: ColumnProperties(
             is_invalid: None,
             error_code: None,
@@ -64,12 +60,10 @@ Sbdf(
           ),
         ),
         ColumnSlice(
-          values: Plain(
-            value: DoubleArray(DoubleArray([
-              3.5,
-              100.0,
-            ])),
-          ),
+          values: Plain(DoubleArray(DoubleArray([
+            3.5,
+            100.0,
+          ]))),
           properties: ColumnProperties(
             is_invalid: None,
             error_code: None,
@@ -83,20 +77,16 @@ Sbdf(
           ),
         ),
         ColumnSlice(
-          values: Plain(
-            value: DateArray(DateArray([
-              12345,
-              0,
-            ])),
-          ),
+          values: Plain(DateArray(DateArray([
+            12345,
+            0,
+          ]))),
           properties: ColumnProperties(
             is_invalid: None,
-            error_code: Some(Plain(
-              value: StringArray(StringArray([
-                "",
-                "illegal value",
-              ])),
-            )),
+            error_code: Some(Plain(StringArray(StringArray([
+              "",
+              "illegal value",
+            ])))),
             has_replaced_value: None,
             other: [],
           ),

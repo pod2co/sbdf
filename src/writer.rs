@@ -437,7 +437,7 @@ impl<'a> SbdfWriter<'a> {
 
     fn write_value_array(&mut self, values: &EncodedValue) -> Result<(), SbdfError> {
         match values {
-            EncodedValue::Plain { value } => self.write_encoded_plain(value),
+            EncodedValue::Plain(value) => self.write_encoded_plain(value),
             EncodedValue::RunLength(run_length) => {
                 let EncodedRunLength {
                     repetitions,

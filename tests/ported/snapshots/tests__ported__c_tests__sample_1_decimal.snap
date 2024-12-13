@@ -33,9 +33,7 @@ Sbdf(
     TableSlice(
       column_slices: [
         ColumnSlice(
-          values: Plain(
-            value: Decimal((87, 105, 168, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48)),
-          ),
+          values: Plain(Decimal((87, 105, 168, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 56, 48))),
           properties: ColumnProperties(
             is_invalid: None,
             error_code: None,

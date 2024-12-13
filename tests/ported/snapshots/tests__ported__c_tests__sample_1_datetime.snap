@@ -33,9 +33,7 @@ Sbdf(
     TableSlice(
       column_slices: [
         ColumnSlice(
-          values: Plain(
-            value: DateTime(DateTime(49923129600000)),
-          ),
+          values: Plain(DateTime(DateTime(49923129600000))),
           properties: ColumnProperties(
             is_invalid: None,
             error_code: None,

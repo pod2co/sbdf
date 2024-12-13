@@ -37,13 +37,11 @@ Sbdf(
     TableSlice(
       column_slices: [
         ColumnSlice(
-          values: Plain(
-            value: Binary([
-              33,
-              34,
-              35,
-            ]),
-          ),
+          values: Plain(Binary([
+            33,
+            34,
+            35,
+          ])),
           properties: ColumnProperties(
             is_invalid: None,
             error_code: None,

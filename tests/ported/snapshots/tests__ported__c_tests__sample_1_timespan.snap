@@ -33,9 +33,7 @@ Sbdf(
     TableSlice(
       column_slices: [
         ColumnSlice(
-          values: Plain(
-            value: TimeSpan(405900),
-          ),
+          values: Plain(TimeSpan(405900)),
           properties: ColumnProperties(
             is_invalid: None,
             error_code: None,
