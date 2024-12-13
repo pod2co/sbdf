@@ -1,10 +1,10 @@
 use crate::{
     BinaryArray, BoolArray, ColumnMetadata, ColumnProperties, ColumnSlice, Date, DateArray,
-    DateTime, DateTimeArray, Decimal, DecimalArray, DoubleArray, EncodedBitArray, EncodedValue,
-    FileHeader, FloatArray, IntArray, LongArray, Metadata, Object, Property, SbdfError, SectionId,
-    StringArray, TableMetadata, TableSlice, TimeArray, TimeSpanArray, ValueArrayEncoding,
-    ValueType, BITS_PER_BYTE, COLUMN_METADATA_NAME, COLUMN_METADATA_TYPE, PROPERTY_ERROR_CODE,
-    PROPERTY_HAS_REPLACED_VALUE, PROPERTY_IS_INVALID,
+    DateTime, DateTimeArray, Decimal, DecimalArray, DoubleArray, EncodedBitArray, EncodedRunLength,
+    EncodedValue, FileHeader, FloatArray, IntArray, LongArray, Metadata, Object, Property,
+    SbdfError, SectionId, StringArray, TableMetadata, TableSlice, TimeArray, TimeSpanArray,
+    ValueArrayEncoding, ValueType, BITS_PER_BYTE, COLUMN_METADATA_NAME, COLUMN_METADATA_TYPE,
+    PROPERTY_ERROR_CODE, PROPERTY_HAS_REPLACED_VALUE, PROPERTY_IS_INVALID,
 };
 use std::io::{Cursor, Read};
 
@@ -400,15 +400,15 @@ impl<'a> SbdfReader<'a> {
             ValueArrayEncoding::RunLength => {
                 let _item_count = self.read_int()?;
 
-                // The run lengths are byte arrays, so we can just read them directly instead of
+                // The repetitions are byte arrays, so we can just read them directly instead of
                 // going through the object deserialization process.
-                let run_lengths = self.read_bytes(false)?;
+                let repetitions = self.read_bytes(false)?;
 
                 let values = self.read_object_packed_array(value_type)?;
-                EncodedValue::RunLength {
-                    run_lengths: run_lengths.into_boxed_slice(),
+                EncodedValue::RunLength(EncodedRunLength {
+                    repetitions: repetitions.into_boxed_slice(),
                     values,
-                }
+                })
             }
             ValueArrayEncoding::BitArray => {
                 let bit_count = self.read_int()? as usize;
