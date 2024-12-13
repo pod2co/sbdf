@@ -2,9 +2,10 @@ use std::io::Cursor;
 
 use crate::{
     BinaryArray, BoolArray, ColumnMetadataType, ColumnProperties, ColumnSlice, DateArray,
-    DateTimeArray, Decimal, DecimalArray, DoubleArray, EncodedBitArray, EncodedValue, FileHeader,
-    FloatArray, IntArray, LongArray, Metadata, Object, SbdfError, SectionId, StringArray,
-    TableMetadata, TableSlice, TimeArray, TimeSpanArray, ValueArrayEncoding, ValueType,
+    DateTimeArray, Decimal, DecimalArray, DoubleArray, EncodedBitArray, EncodedRunLength,
+    EncodedValue, FileHeader, FloatArray, IntArray, LongArray, Metadata, Object, SbdfError,
+    SectionId, StringArray, TableMetadata, TableSlice, TimeArray, TimeSpanArray,
+    ValueArrayEncoding, ValueType,
 };
 
 fn bytes_needed_for_7bit_packed_int(value: i32) -> i32 {
@@ -437,9 +438,25 @@ impl<'a> SbdfWriter<'a> {
     fn write_value_array(&mut self, values: &EncodedValue) -> Result<(), SbdfError> {
         match values {
             EncodedValue::Plain { value } => self.write_encoded_plain(value),
-            EncodedValue::RunLength { .. } => {
+            EncodedValue::RunLength(run_length) => {
+                let EncodedRunLength {
+                    repetitions,
+                    values,
+                } = run_length;
+
                 self.write_byte(ValueArrayEncoding::RunLength as u8)?;
-                todo!()
+                self.write_value_type(values.value_type())?;
+
+                let total_elements: i32 = run_length
+                    .total_elements()?
+                    .try_into()
+                    .map_err(|_| SbdfError::TooManyValuesInArray)?;
+
+                self.write_int(total_elements)?;
+                self.write_bytes(&repetitions, false)?;
+                self.write_object_packed_array(values)?;
+
+                Ok(())
             }
             EncodedValue::BitArray(bit_array) => self.write_encoded_bit_array(bit_array),
         }

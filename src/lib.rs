@@ -1,6 +1,6 @@
 use reader::SbdfReader;
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, io::Cursor};
+use std::{borrow::Cow, io::Cursor, iter};
 use thiserror::Error;
 use writer::SbdfWriter;
 
@@ -76,6 +76,8 @@ pub enum SbdfError {
     TooManyProperties,
     #[error("too many values in array")]
     TooManyValuesInArray,
+    #[error("invalid run-length encoded object")]
+    InvalidRunLengthEncodedObject,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -513,14 +515,37 @@ impl TryFrom<u8> for ValueArrayEncoding {
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+pub struct EncodedRunLength {
+    /// The additional repetitions to apply to each value at the same index. If the value
+    /// should only be included once (i.e., the run length is 1), the repetitions should be 0.
+    /// If the value should be included twice (run length of 2), the repetitions should be 1,
+    /// and so on.
+    repetitions: Box<[u8]>,
+    values: Object,
+}
+
+impl EncodedRunLength {
+    /// Count the total number of elements in the run-length encoded array after decoding.
+    pub fn total_elements(&self) -> Result<usize, SbdfError> {
+        let mut item_count = 0usize;
+
+        for run_length in self.repetitions.iter() {
+            // The value is always included at least once, followed by the additional
+            // repetitions.
+            item_count = item_count
+                .checked_add(1)
+                .and_then(|x| x.checked_add(*run_length as usize))
+                .ok_or(SbdfError::TooManyValuesInArray)?;
+        }
+
+        Ok(item_count)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub enum EncodedValue {
-    Plain {
-        value: Object,
-    },
-    RunLength {
-        run_lengths: Box<[u8]>,
-        values: Object,
-    },
+    Plain { value: Object },
+    RunLength(EncodedRunLength),
     BitArray(EncodedBitArray),
 }
 
@@ -531,10 +556,85 @@ impl EncodedValue {
                 // Already unpacked, so just return a borrowed reference.
                 Ok(Cow::Borrowed(value))
             }
-            EncodedValue::RunLength { .. } => {
-                // TODO: It seems like these should all be array types, but it's not clear where
-                // that's enforced right now.
-                unimplemented!("run length loading")
+            EncodedValue::RunLength(run_length) => {
+                fn repeat_value<T>(
+                    run_length: &EncodedRunLength,
+                    encoded_values: &[T],
+                ) -> Result<Box<[T]>, SbdfError>
+                where
+                    T: Clone,
+                {
+                    let mut values: Vec<T> = Vec::with_capacity(run_length.total_elements()?);
+                    let repetitions = &run_length.repetitions;
+
+                    for (repetitions_for_encoded_value, encoded_value) in
+                        repetitions.iter().zip(encoded_values.iter())
+                    {
+                        // The value plus however many additional times it should be repeated.
+                        let total_times_to_include =
+                            1usize + *repetitions_for_encoded_value as usize;
+                        values.extend(
+                            iter::repeat_with(|| encoded_value.clone())
+                                .take(total_times_to_include),
+                        );
+                    }
+
+                    Ok(values.into_boxed_slice())
+                }
+
+                Ok(Cow::Owned(match &run_length.values {
+                    Object::BoolArray(BoolArray(bool_array)) => {
+                        Object::BoolArray(BoolArray(repeat_value(run_length, bool_array)?))
+                    }
+                    Object::IntArray(IntArray(int_array)) => {
+                        Object::IntArray(IntArray(repeat_value(run_length, int_array)?))
+                    }
+                    Object::LongArray(LongArray(long_array)) => {
+                        Object::LongArray(LongArray(repeat_value(run_length, long_array)?))
+                    }
+                    Object::FloatArray(FloatArray(float_array)) => {
+                        Object::FloatArray(FloatArray(repeat_value(run_length, float_array)?))
+                    }
+                    Object::DoubleArray(DoubleArray(double_array)) => {
+                        Object::DoubleArray(DoubleArray(repeat_value(run_length, double_array)?))
+                    }
+                    Object::DateTimeArray(DateTimeArray(date_time_array)) => Object::DateTimeArray(
+                        DateTimeArray(repeat_value(run_length, date_time_array)?),
+                    ),
+                    Object::DateArray(DateArray(date_array)) => {
+                        Object::DateArray(DateArray(repeat_value(run_length, date_array)?))
+                    }
+                    Object::TimeArray(TimeArray(time_array)) => {
+                        Object::TimeArray(TimeArray(repeat_value(run_length, time_array)?))
+                    }
+                    Object::TimeSpanArray(TimeSpanArray(time_span_array)) => Object::TimeSpanArray(
+                        TimeSpanArray(repeat_value(run_length, time_span_array)?),
+                    ),
+                    Object::StringArray(StringArray(string_array)) => {
+                        Object::StringArray(StringArray(repeat_value(run_length, string_array)?))
+                    }
+                    Object::BinaryArray(BinaryArray(binary_array)) => {
+                        Object::BinaryArray(BinaryArray(repeat_value(run_length, binary_array)?))
+                    }
+                    Object::DecimalArray(DecimalArray(decimal_array)) => {
+                        Object::DecimalArray(DecimalArray(repeat_value(run_length, decimal_array)?))
+                    }
+                    // It's possible we might want to handle this by repeating the single value for
+                    // each repetition, but it's not clear this is ever used in practice. For now we
+                    // always expect the values to be arrays.
+                    Object::Bool(_)
+                    | Object::Int(_)
+                    | Object::Long(_)
+                    | Object::Float(_)
+                    | Object::Double(_)
+                    | Object::DateTime(_)
+                    | Object::Date(_)
+                    | Object::Time(_)
+                    | Object::TimeSpan(_)
+                    | Object::String(_)
+                    | Object::Binary(_)
+                    | Object::Decimal(_) => return Err(SbdfError::InvalidRunLengthEncodedObject),
+                }))
             }
             EncodedValue::BitArray(bit_array) => {
                 Ok(Cow::Owned(Object::BoolArray(bit_array.decode()?)))
