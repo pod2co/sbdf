@@ -544,7 +544,7 @@ impl EncodedRunLength {
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub enum EncodedValue {
-    Plain { value: Object },
+    Plain(Object),
     RunLength(EncodedRunLength),
     BitArray(EncodedBitArray),
 }
@@ -552,7 +552,7 @@ pub enum EncodedValue {
 impl EncodedValue {
     pub fn decode(&self) -> Result<Cow<'_, Object>, SbdfError> {
         match self {
-            EncodedValue::Plain { value } => {
+            EncodedValue::Plain(value) => {
                 // Already unpacked, so just return a borrowed reference.
                 Ok(Cow::Borrowed(value))
             }

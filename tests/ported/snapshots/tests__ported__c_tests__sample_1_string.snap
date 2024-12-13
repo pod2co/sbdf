@@ -33,9 +33,7 @@ Sbdf(
     TableSlice(
       column_slices: [
         ColumnSlice(
-          values: Plain(
-            value: String("The"),
-          ),
+          values: Plain(String("The")),
           properties: ColumnProperties(
             is_invalid: None,
             error_code: None,

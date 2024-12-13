@@ -395,7 +395,7 @@ impl<'a> SbdfReader<'a> {
         Ok(match encoding {
             ValueArrayEncoding::Plain => {
                 let value = self.read_object_packed_array(value_type)?;
-                EncodedValue::Plain { value }
+                EncodedValue::Plain(value)
             }
             ValueArrayEncoding::RunLength => {
                 let _item_count = self.read_int()?;

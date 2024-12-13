@@ -33,9 +33,7 @@ Sbdf(
     TableSlice(
       column_slices: [
         ColumnSlice(
-          values: Plain(
-            value: Double(103.62),
-          ),
+          values: Plain(Double(103.62)),
           properties: ColumnProperties(
             is_invalid: None,
             error_code: None,

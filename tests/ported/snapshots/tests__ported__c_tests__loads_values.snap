@@ -31,13 +31,11 @@ expression: "(&sbdf, all_values)"
     TableSlice(
       column_slices: [
         ColumnSlice(
-          values: Plain(
-            value: IntArray(IntArray([
-              1,
-              2,
-              0,
-            ])),
-          ),
+          values: Plain(IntArray(IntArray([
+            1,
+            2,
+            0,
+          ]))),
           properties: ColumnProperties(
             is_invalid: Some(EncodedBitArray(
               bit_count: 3,
@@ -51,13 +49,11 @@ expression: "(&sbdf, all_values)"
           ),
         ),
         ColumnSlice(
-          values: Plain(
-            value: StringArray(StringArray([
-              "Foo",
-              "Fie",
-              "Fum",
-            ])),
-          ),
+          values: Plain(StringArray(StringArray([
+            "Foo",
+            "Fie",
+            "Fum",
+          ]))),
           properties: ColumnProperties(
             is_invalid: None,
             error_code: None,
@@ -66,13 +62,11 @@ expression: "(&sbdf, all_values)"
           ),
         ),
         ColumnSlice(
-          values: Plain(
-            value: DoubleArray(DoubleArray([
-              3.5,
-              100.0,
-              NaN,
-            ])),
-          ),
+          values: Plain(DoubleArray(DoubleArray([
+            3.5,
+            100.0,
+            NaN,
+          ]))),
           properties: ColumnProperties(
             is_invalid: None,
             error_code: None,
