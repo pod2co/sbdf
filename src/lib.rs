@@ -520,8 +520,9 @@ pub struct EncodedRunLength {
     /// should only be included once (i.e., the run length is 1), the repetitions should be 0.
     /// If the value should be included twice (run length of 2), the repetitions should be 1,
     /// and so on.
-    repetitions: Box<[u8]>,
-    values: Object,
+    pub repetitions: Box<[u8]>,
+    /// The values to repeat.
+    pub values: Object,
 }
 
 impl EncodedRunLength {
